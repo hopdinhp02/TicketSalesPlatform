@@ -18,7 +18,7 @@ builder
         "Bearer",
         options =>
         {
-            options.Authority = "https://localhost:5001"; // Identity.Api address
+            options.Authority = builder.Configuration["Authentication:Authority"];
             options.Audience = "orders"; // API resource name
 
             if (builder.Environment.IsDevelopment())
@@ -55,8 +55,9 @@ builder.Services.AddMassTransit(busConfigurator =>
     busConfigurator.UsingRabbitMq(
         (context, cfg) =>
         {
+            var host = builder.Configuration["MessageBroker:Host"];
             cfg.Host(
-                "localhost",
+                host,
                 "/",
                 h =>
                 {

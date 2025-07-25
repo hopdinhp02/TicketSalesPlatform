@@ -8,10 +8,11 @@ internal static class HostingExtensions
     public static WebApplication ConfigureServices(this WebApplicationBuilder builder)
     {
         builder.Services.AddRazorPages();
-
+        var issuer = builder.Configuration["IdentityServer:IssuerUri"];
         var isBuilder = builder
             .Services.AddIdentityServer(options =>
             {
+                options.IssuerUri = issuer;
                 options.Events.RaiseErrorEvents = true;
                 options.Events.RaiseInformationEvents = true;
                 options.Events.RaiseFailureEvents = true;

@@ -1,19 +1,101 @@
-version: '3.8'
 services:
+  # Infrastructure
   postgres:
     image: postgres:15
     ports:
       - "5432:5432"
     environment:
-      - POSTGRES_USER=user
-      - POSTGRES_PASSWORD=password
-      - POSTGRES_DB=TicketSalesPlatform
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: ticketflowdb
     volumes:
       - postgres_data:/var/lib/postgresql/data/
+
   rabbitmq:
     image: rabbitmq:3-management
     ports:
       - "5672:5672"
       - "15672:15672"
+
+  # Services
+  ticketflow.apigateway:
+    image: ${DOCKER_REGISTRY-}ticketflowapigateway
+    build:
+      context: .
+      dockerfile: src/ApiGateway/Dockerfile
+    ports:
+      - "7000:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
+      - Authentication__Authority=http://ticketflow.identity.api:8080
+    depends_on:
+      - ticketflow.events.api
+      - ticketflow.orders.api
+      - ticketflow.identity.api
+
+  ticketflow.events.api:
+    image: ${DOCKER_REGISTRY-}ticketfloweventsapi
+    build:
+      context: .
+      dockerfile: src/Services/Events/Events.Api/Dockerfile
+    ports:
+      - "7001:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
+      - ConnectionStrings__Database=Host=postgres;Port=5432;Database=ticketflowdb;Username=user;Password=password
+      - Authentication__Authority=http://ticketflow.identity.api:8080
+    depends_on:
+      - postgres
+      - ticketflow.identity.api
+
+  ticketflow.orders.api:
+    image: ${DOCKER_REGISTRY-}ticketflowordersapi
+    build:
+      context: .
+      dockerfile: src/Services/Orders/Orders.Api/Dockerfile
+    ports:
+      - "7002:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
+      - ConnectionStrings__Database=Host=postgres;Port=5432;Database=ticketflowdb;Username=user;Password=password
+      - Authentication__Authority=http://ticketflow.identity.api:8080
+      - MessageBroker__Host=rabbitmq
+    depends_on:
+      - postgres
+      - rabbitmq
+      - ticketflow.identity.api
+
+  ticketflow.identity.api:
+    image: ${DOCKER_REGISTRY-}ticketflowidentityapi
+    build:
+      context: .
+      dockerfile: src/Services/Identity/Identity.Api/Dockerfile
+    ports:
+      - "5001:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
+      - IdentityServer__IssuerUri=http://ticketflow.identity.api:8080
+    volumes:
+      - identity_keys:/app/keys
+    
+  ticketflow.notifications.api:
+    image: ${DOCKER_REGISTRY-}ticketflownotificationsapi
+    build:
+      context: .
+      dockerfile: src/Services/Notifications/Dockerfile
+    ports:
+      - "7003:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
+      - MessageBroker__Host=rabbitmq
+    depends_on:
+      - rabbitmq
+
 volumes:
   postgres_data:
+  identity_keys:  

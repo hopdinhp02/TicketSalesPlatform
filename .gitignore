@@ -22,3 +22,4 @@ obj/
 # Secrets
 appsettings.Development.json
 secrets.json
+/docker-compose.override.yml
