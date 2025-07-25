@@ -12,8 +12,9 @@ builder.Services.AddMassTransit(busConfigurator =>
     busConfigurator.UsingRabbitMq(
         (context, cfg) =>
         {
+            var host = builder.Configuration["MessageBroker:Host"];
             cfg.Host(
-                "localhost",
+                host,
                 "/",
                 h =>
                 {

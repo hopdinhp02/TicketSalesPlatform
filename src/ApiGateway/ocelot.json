@@ -3,11 +3,11 @@
     // Route for the Events Microservice
     {
       "DownstreamPathTemplate": "/api/events/{everything}",
-      "DownstreamScheme": "https",
+      "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
-          "Host": "localhost",
-          "Port": 7001
+          "Host": "ticketflow.events.api",
+          "Port": 8080
         }
       ],
       "UpstreamPathTemplate": "/gateway/events/{everything}",
@@ -20,11 +20,11 @@
     // Route for the Orders Microservice
     {
       "DownstreamPathTemplate": "/api/orders/{everything}",
-      "DownstreamScheme": "https",
+      "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
-          "Host": "localhost",
-          "Port": 7002
+          "Host": "ticketflow.orders.api",
+          "Port": 8080
         }
       ],
       "UpstreamPathTemplate": "/gateway/orders/{everything}",
@@ -36,6 +36,6 @@
     }
   ],
   "GlobalConfiguration": {
-    "BaseUrl": "https://localhost:7000" // The public-facing URL of the gateway
+    "BaseUrl": "http://localhost:7000" // The public-facing URL of the gateway
   }
 }

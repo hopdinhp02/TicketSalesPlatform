@@ -14,7 +14,7 @@ builder
         "Bearer",
         options =>
         {
-            options.Authority = "https://localhost:5001"; // The address of your Identity.Api
+            options.Authority = builder.Configuration["Authentication:Authority"];
             options.TokenValidationParameters = new TokenValidationParameters
             {
                 ValidateAudience = false,
