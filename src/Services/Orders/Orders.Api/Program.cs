@@ -5,6 +5,7 @@ using MassTransit;
 using MediatR;
 using Orders.Domain.Aggregates;
 using Polly;
+using Serilog;
 using TicketFlow.Orders.Application.Abstractions;
 using TicketFlow.Orders.Application.GetOrderById;
 using TicketFlow.Orders.Application.PlaceOrder;
@@ -97,7 +98,12 @@ builder
 builder.Services.AddScoped<IRepository<Order>, OrderRepository>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
+Log.Logger = new LoggerConfiguration().ReadFrom.Configuration(builder.Configuration).CreateLogger();
+builder.Host.UseSerilog();
+
 var app = builder.Build();
+
+app.UseSerilogRequestLogging();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

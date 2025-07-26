@@ -1,5 +1,6 @@
 using Marten;
 using MediatR;
+using Serilog;
 using TicketFlow.Events.Application.Abstractions;
 using TicketFlow.Events.Application.CreateEvent;
 using TicketFlow.Events.Application.GetEventById;
@@ -52,7 +53,13 @@ builder
 builder.Services.AddScoped<IRepository<Event>, EventRepository>();
 builder.Services.AddScoped<TicketFlow.Events.Application.Abstractions.IUnitOfWork, UnitOfWork>();
 
+Log.Logger = new LoggerConfiguration().ReadFrom.Configuration(builder.Configuration).CreateLogger();
+
+builder.Host.UseSerilog();
+
 var app = builder.Build();
+
+app.UseSerilogRequestLogging();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

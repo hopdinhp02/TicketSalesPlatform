@@ -1,4 +1,5 @@
 using MassTransit;
+using Serilog;
 using TicketFlow.Notifications.Api.Consumers;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -32,7 +33,13 @@ builder.Services.AddMassTransit(busConfigurator =>
 
 // --- END: MASSTRANSIT CONFIGURATION ---
 
+Log.Logger = new LoggerConfiguration().ReadFrom.Configuration(builder.Configuration).CreateLogger();
+
+builder.Host.UseSerilog();
+
 var app = builder.Build();
+
+app.UseSerilogRequestLogging();
 
 app.MapGet("/", () => "Notifications Service is running.");
 
