@@ -1,4 +1,6 @@
 using MassTransit;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 using Serilog;
 using TicketFlow.Notifications.Api.Consumers;
 
@@ -32,6 +34,15 @@ builder.Services.AddMassTransit(busConfigurator =>
 });
 
 // --- END: MASSTRANSIT CONFIGURATION ---
+
+builder
+    .Services.AddOpenTelemetry()
+    .ConfigureResource(resource =>
+        resource.AddService(serviceName: builder.Environment.ApplicationName)
+    )
+    .WithTracing(tracing =>
+        tracing.AddAspNetCoreInstrumentation().AddHttpClientInstrumentation().AddConsoleExporter()
+    );
 
 Log.Logger = new LoggerConfiguration().ReadFrom.Configuration(builder.Configuration).CreateLogger();
 

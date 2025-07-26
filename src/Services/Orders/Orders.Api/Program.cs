@@ -3,6 +3,8 @@ using JasperFx.Events.Projections;
 using Marten;
 using MassTransit;
 using MediatR;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 using Orders.Domain.Aggregates;
 using Polly;
 using Serilog;
@@ -97,6 +99,15 @@ builder
 // Register Repositories and Unit of Work
 builder.Services.AddScoped<IRepository<Order>, OrderRepository>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+builder
+    .Services.AddOpenTelemetry()
+    .ConfigureResource(resource =>
+        resource.AddService(serviceName: builder.Environment.ApplicationName)
+    )
+    .WithTracing(tracing =>
+        tracing.AddAspNetCoreInstrumentation().AddHttpClientInstrumentation().AddConsoleExporter()
+    );
 
 Log.Logger = new LoggerConfiguration().ReadFrom.Configuration(builder.Configuration).CreateLogger();
 builder.Host.UseSerilog();
