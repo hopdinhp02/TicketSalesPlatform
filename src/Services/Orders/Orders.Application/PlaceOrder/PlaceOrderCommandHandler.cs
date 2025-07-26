@@ -1,4 +1,5 @@
 ﻿using MediatR;
+using Microsoft.Extensions.Logging;
 using Orders.Domain.Aggregates;
 using TicketFlow.Orders.Application.Abstractions;
 using TicketFlow.Orders.Domain.Aggregates;
@@ -11,18 +12,21 @@ namespace TicketFlow.Orders.Application.PlaceOrder
         private readonly IUnitOfWork _unitOfWork;
         private readonly IPublisher _publisher;
         private readonly IEventsClient _eventsClient;
+        private readonly ILogger<PlaceOrderCommandHandler> _logger;
 
         public PlaceOrderCommandHandler(
             IRepository<Order> orderRepository,
             IUnitOfWork unitOfWork,
             IPublisher publisher,
-            IEventsClient eventsClient
+            IEventsClient eventsClient,
+            ILogger<PlaceOrderCommandHandler> logger
         )
         {
             _orderRepository = orderRepository;
             _unitOfWork = unitOfWork;
             _publisher = publisher;
             _eventsClient = eventsClient;
+            _logger = logger;
         }
 
         public async Task<Guid> Handle(
@@ -59,13 +63,19 @@ namespace TicketFlow.Orders.Application.PlaceOrder
                 ))
                 .ToList();
             var order = Order.Create(request.CustomerId, orderItems);
+
+            _logger.LogInformation("Creating new order {@Order}", order);
+
             _orderRepository.Add(order);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
+
             foreach (var domainEvent in order.GetDomainEvents())
             {
                 await _publisher.Publish(domainEvent, cancellationToken);
             }
             order.ClearDomainEvents();
+
+            _logger.LogInformation("Order created successfully with Id: {OrderId}", order.Id);
             return order.Id;
         }
     }
