@@ -95,6 +95,21 @@ app.MapGet(
     .RequireAuthorization();
 ;
 
+app.MapGet(
+        "/api/events/{eventId:guid}/tickets/{ticketTypeId:guid}/availability",
+        async (Guid eventId, Guid ticketTypeId, IQuerySession querySession) =>
+        {
+            var availableTickets = 10; // Simulated availability
+
+            return Results.Ok(
+                new { TicketTypeId = ticketTypeId, AvailableQuantity = availableTickets }
+            );
+        }
+    )
+    .WithName("GetTicketAvailability")
+    .WithTags("Events")
+    .RequireAuthorization();
+
 // --- API ENDPOINT ---
 
 app.Run();

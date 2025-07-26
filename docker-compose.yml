@@ -63,6 +63,7 @@ services:
       - ConnectionStrings__Database=Host=postgres;Port=5432;Database=ticketflowdb;Username=user;Password=password
       - Authentication__Authority=http://ticketflow.identity.api:8080
       - MessageBroker__Host=rabbitmq
+      - Services__EventsApiUrl=http://ticketflow.events.api:8080
     depends_on:
       - postgres
       - rabbitmq
