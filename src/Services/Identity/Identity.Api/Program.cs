@@ -1,4 +1,6 @@
-﻿using Serilog;
+﻿using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
+using Serilog;
 using TicketFlow.Identity.Api;
 
 Log.Logger = new LoggerConfiguration().WriteTo.Console().CreateBootstrapLogger();
@@ -8,6 +10,18 @@ Log.Information("Starting up");
 try
 {
     var builder = WebApplication.CreateBuilder(args);
+
+    builder
+        .Services.AddOpenTelemetry()
+        .ConfigureResource(resource =>
+            resource.AddService(serviceName: builder.Environment.ApplicationName)
+        )
+        .WithTracing(tracing =>
+            tracing
+                .AddAspNetCoreInstrumentation()
+                .AddHttpClientInstrumentation()
+                .AddConsoleExporter()
+        );
 
     builder.Host.UseSerilog(
         (ctx, lc) =>

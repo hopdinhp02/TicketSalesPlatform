@@ -1,5 +1,7 @@
 using Marten;
 using MediatR;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 using Serilog;
 using TicketFlow.Events.Application.Abstractions;
 using TicketFlow.Events.Application.CreateEvent;
@@ -52,6 +54,15 @@ builder
 
 builder.Services.AddScoped<IRepository<Event>, EventRepository>();
 builder.Services.AddScoped<TicketFlow.Events.Application.Abstractions.IUnitOfWork, UnitOfWork>();
+
+builder
+    .Services.AddOpenTelemetry()
+    .ConfigureResource(resource =>
+        resource.AddService(serviceName: builder.Environment.ApplicationName)
+    )
+    .WithTracing(tracing =>
+        tracing.AddAspNetCoreInstrumentation().AddHttpClientInstrumentation().AddConsoleExporter()
+    );
 
 Log.Logger = new LoggerConfiguration().ReadFrom.Configuration(builder.Configuration).CreateLogger();
 
