@@ -3,6 +3,7 @@ using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using Serilog;
 using TicketFlow.Notifications.Api.Consumers;
+using TicketFlow.Notifications.Api.Idempotency;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -26,9 +27,17 @@ builder.Services.AddMassTransit(busConfigurator =>
                 }
             );
 
-            // This configures a queue for our consumer and binds it to the
-            // correct exchange for the OrderPlacedIntegrationEvent.
-            cfg.ConfigureEndpoints(context);
+            cfg.ReceiveEndpoint(
+                "order-placed-notifications",
+                e =>
+                {
+                    // If the consumer throws an exception, retry 3 times with a 5-second delay between retries.
+                    // After 3 failures, the message will be moved to an automatically created _error queue.
+                    e.UseMessageRetry(r => r.Interval(3, TimeSpan.FromSeconds(5)));
+
+                    e.ConfigureConsumer<OrderPlacedConsumer>(context);
+                }
+            );
         }
     );
 });
@@ -47,6 +56,8 @@ builder
 Log.Logger = new LoggerConfiguration().ReadFrom.Configuration(builder.Configuration).CreateLogger();
 
 builder.Host.UseSerilog();
+
+builder.Services.AddSingleton<IProcessedMessageService, InMemoryProcessedMessageService>();
 
 var app = builder.Build();
 
