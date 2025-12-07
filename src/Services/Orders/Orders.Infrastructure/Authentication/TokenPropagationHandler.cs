@@ -1,7 +1,7 @@
 ﻿using System.Net.Http.Headers;
 using Microsoft.AspNetCore.Http;
 
-namespace TicketFlow.Orders.Infrastructure.Authentication
+namespace TicketSalesPlatform.Orders.Infrastructure.Authentication
 {
     /// <summary>
     /// An HttpMessageHandler that intercepts outgoing requests and propagates the

@@ -2,8 +2,8 @@ using MassTransit;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using Serilog;
-using TicketFlow.Notifications.Api.Consumers;
-using TicketFlow.Notifications.Api.Idempotency;
+using TicketSalesPlatform.Notifications.Api.Consumers;
+using TicketSalesPlatform.Notifications.Api.Idempotency;
 
 var builder = WebApplication.CreateBuilder(args);
 

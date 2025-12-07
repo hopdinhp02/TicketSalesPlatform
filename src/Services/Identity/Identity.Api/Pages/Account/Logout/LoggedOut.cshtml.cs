@@ -5,7 +5,7 @@ using Duende.IdentityServer.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
-namespace TicketFlow.Identity.Api.Pages.Logout;
+namespace TicketSalesPlatform.Identity.Api.Pages.Logout;
 
 [SecurityHeaders]
 [AllowAnonymous]

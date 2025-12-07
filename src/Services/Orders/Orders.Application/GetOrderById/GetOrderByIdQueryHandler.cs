@@ -1,8 +1,8 @@
 ﻿using Marten;
 using MediatR;
-using TicketFlow.Orders.Domain.ReadModels;
+using TicketSalesPlatform.Orders.Domain.ReadModels;
 
-namespace TicketFlow.Orders.Application.GetOrderById
+namespace TicketSalesPlatform.Orders.Application.GetOrderById
 {
     public sealed class GetOrderByIdQueryHandler : IRequestHandler<GetOrderByIdQuery, OrderDetails?>
     {

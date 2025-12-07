@@ -1,4 +1,4 @@
-﻿namespace TicketFlow.Events.Domain.ReadModels
+﻿namespace TicketSalesPlatform.Events.Domain.ReadModels
 {
     /// <summary>
     /// A denormalized, read-optimized model representing an event summary.

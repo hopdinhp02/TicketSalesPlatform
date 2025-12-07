@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
-namespace TicketFlow.Identity.Api.Pages.Create;
+namespace TicketSalesPlatform.Identity.Api.Pages.Create;
 
 [SecurityHeaders]
 [AllowAnonymous]

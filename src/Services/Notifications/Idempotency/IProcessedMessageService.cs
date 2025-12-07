@@ -1,4 +1,4 @@
-﻿namespace TicketFlow.Notifications.Api.Idempotency
+﻿namespace TicketSalesPlatform.Notifications.Api.Idempotency
 {
     public interface IProcessedMessageService
     {

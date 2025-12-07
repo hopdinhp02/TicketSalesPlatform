@@ -1,6 +1,6 @@
 ﻿using SharedKernel;
 
-namespace TicketFlow.Events.Domain.DomainEvents
+namespace TicketSalesPlatform.Events.Domain.DomainEvents
 {
     public sealed record EventCreated(Guid EventId, string Title, DateTime Date) : IDomainEvent
     {

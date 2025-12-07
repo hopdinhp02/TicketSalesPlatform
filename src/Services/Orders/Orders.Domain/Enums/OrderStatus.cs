@@ -1,4 +1,4 @@
-﻿namespace TicketFlow.Orders.Domain.Enums
+﻿namespace TicketSalesPlatform.Orders.Domain.Enums
 {
     public enum OrderStatus
     {

@@ -1,6 +1,6 @@
 ﻿using System.Reflection;
 
-namespace TicketFlow.Orders.Application
+namespace TicketSalesPlatform.Orders.Application
 {
     public static class AssemblyReference
     {

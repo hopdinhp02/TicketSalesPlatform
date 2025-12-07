@@ -1,6 +1,6 @@
 ﻿using SharedKernel;
 
-namespace TicketFlow.Orders.Application.Abstractions
+namespace TicketSalesPlatform.Orders.Application.Abstractions
 {
     public interface IRepository<T>
         where T : AggregateRoot<Guid>

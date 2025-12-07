@@ -7,7 +7,7 @@ using Duende.IdentityServer.Stores;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
-namespace TicketFlow.Identity.Api.Pages.ServerSideSessions
+namespace TicketSalesPlatform.Identity.Api.Pages.ServerSideSessions
 {
     public class IndexModel : PageModel
     {

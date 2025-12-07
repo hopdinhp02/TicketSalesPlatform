@@ -3,7 +3,7 @@
 
 using Duende.IdentityServer.Models;
 
-namespace TicketFlow.Identity.Api.Pages.Error;
+namespace TicketSalesPlatform.Identity.Api.Pages.Error;
 
 public class ViewModel
 {

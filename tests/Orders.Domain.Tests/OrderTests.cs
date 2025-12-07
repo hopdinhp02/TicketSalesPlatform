@@ -1,10 +1,9 @@
 ﻿using FluentAssertions;
-using Orders.Domain.Aggregates;
-using TicketFlow.Orders.Domain.Aggregates;
-using TicketFlow.Orders.Domain.DomainEvents;
-using TicketFlow.Orders.Domain.Enums;
+using TicketSalesPlatform.Orders.Domain.Aggregates;
+using TicketSalesPlatform.Orders.Domain.DomainEvents;
+using TicketSalesPlatform.Orders.Domain.Enums;
 
-namespace TicketFlow.Orders.Domain.Tests
+namespace TicketSalesPlatform.Orders.Domain.Tests
 {
     public class OrderTests
     {

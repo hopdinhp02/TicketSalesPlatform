@@ -5,7 +5,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
-	<RootNamespace>TicketFlow.Events.Domain.Tests</RootNamespace>
+	<RootNamespace>TicketSalesPlatform.Events.Domain.Tests</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
@@ -17,7 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Services\Events\Events.Domain\TicketFlow.Events.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Services\Events\Events.Domain\TicketSalesPlatform.Events.Domain.csproj" />
   </ItemGroup>
 
   <ItemGroup>

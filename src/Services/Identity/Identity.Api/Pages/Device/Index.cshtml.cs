@@ -7,13 +7,13 @@ using Duende.IdentityServer.Extensions;
 using Duende.IdentityServer.Models;
 using Duende.IdentityServer.Services;
 using Duende.IdentityServer.Validation;
-using TicketFlow.Identity.Api.Pages.Consent;
+using TicketSalesPlatform.Identity.Api.Pages.Consent;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Options;
 
-namespace TicketFlow.Identity.Api.Pages.Device;
+namespace TicketSalesPlatform.Identity.Api.Pages.Device;
 
 [SecurityHeaders]
 [Authorize]

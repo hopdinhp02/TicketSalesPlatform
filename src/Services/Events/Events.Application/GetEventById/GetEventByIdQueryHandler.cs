@@ -1,8 +1,8 @@
 ﻿using Marten;
 using MediatR;
-using TicketFlow.Events.Domain.ReadModels;
+using TicketSalesPlatform.Events.Domain.ReadModels;
 
-namespace TicketFlow.Events.Application.GetEventById
+namespace TicketSalesPlatform.Events.Application.GetEventById
 {
     public sealed class GetEventByIdQueryHandler : IRequestHandler<GetEventByIdQuery, EventSummary?>
     {

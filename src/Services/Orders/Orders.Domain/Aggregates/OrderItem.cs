@@ -1,7 +1,7 @@
 ﻿using SharedKernel;
 using NewId = MassTransit.NewId;
 
-namespace TicketFlow.Orders.Domain.Aggregates
+namespace TicketSalesPlatform.Orders.Domain.Aggregates
 {
     public sealed class OrderItem : Entity<Guid>
     {

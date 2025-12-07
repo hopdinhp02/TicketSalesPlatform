@@ -4,7 +4,7 @@
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
-namespace TicketFlow.Identity.Api.Pages;
+namespace TicketSalesPlatform.Identity.Api.Pages;
 
 public sealed class SecurityHeadersAttribute : ActionFilterAttribute
 {

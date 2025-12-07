@@ -1,10 +1,9 @@
 ﻿using SharedKernel;
-using TicketFlow.Orders.Domain.Aggregates;
-using TicketFlow.Orders.Domain.DomainEvents;
-using TicketFlow.Orders.Domain.Enums;
+using TicketSalesPlatform.Orders.Domain.DomainEvents;
+using TicketSalesPlatform.Orders.Domain.Enums;
 using NewId = MassTransit.NewId;
 
-namespace Orders.Domain.Aggregates
+namespace TicketSalesPlatform.Orders.Domain.Aggregates
 {
     public sealed class Order : AggregateRoot<Guid>
     {

@@ -1,6 +1,6 @@
-@TicketFlow.Events.Api_HostAddress = http://localhost:5016
+@TicketSalesPlatform.Events.Api_HostAddress = http://localhost:5016
 
-GET {{TicketFlow.Events.Api_HostAddress}}/weatherforecast/
+GET {{TicketSalesPlatform.Events.Api_HostAddress}}/weatherforecast/
 Accept: application/json
 
 ###

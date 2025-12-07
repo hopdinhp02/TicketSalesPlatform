@@ -1,4 +1,4 @@
-﻿namespace TicketFlow.Orders.Application.Abstractions
+﻿namespace TicketSalesPlatform.Orders.Application.Abstractions
 {
     public interface IUnitOfWork
     {

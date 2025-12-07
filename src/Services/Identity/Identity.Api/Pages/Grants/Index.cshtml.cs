@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
-namespace TicketFlow.Identity.Api.Pages.Grants;
+namespace TicketSalesPlatform.Identity.Api.Pages.Grants;
 
 [SecurityHeaders]
 [Authorize]

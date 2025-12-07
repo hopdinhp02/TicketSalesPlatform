@@ -1,8 +1,8 @@
 ﻿using SharedKernel;
-using TicketFlow.Events.Domain.DomainEvents;
+using TicketSalesPlatform.Events.Domain.DomainEvents;
 using NewId = MassTransit.NewId;
 
-namespace TicketFlow.Events.Domain.Aggregates
+namespace TicketSalesPlatform.Events.Domain.Aggregates
 {
     public sealed class Event : AggregateRoot<Guid>
     {

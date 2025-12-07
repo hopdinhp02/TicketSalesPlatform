@@ -3,7 +3,7 @@
 
 using System.ComponentModel.DataAnnotations;
 
-namespace TicketFlow.Identity.Api.Pages.Login;
+namespace TicketSalesPlatform.Identity.Api.Pages.Login;
 
 public class InputModel
 {

@@ -1,9 +1,9 @@
 ﻿using Marten.Events.Aggregation;
-using TicketFlow.Orders.Domain.DomainEvents;
-using TicketFlow.Orders.Domain.Enums;
-using TicketFlow.Orders.Domain.ReadModels;
+using TicketSalesPlatform.Orders.Domain.DomainEvents;
+using TicketSalesPlatform.Orders.Domain.Enums;
+using TicketSalesPlatform.Orders.Domain.ReadModels;
 
-namespace TicketFlow.Orders.Infrastructure.Projections
+namespace TicketSalesPlatform.Orders.Infrastructure.Projections
 {
     public class OrderDetailsProjection : SingleStreamProjection<OrderDetails, Guid>
     {

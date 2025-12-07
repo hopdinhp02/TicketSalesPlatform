@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Authentication;
 using System.Text;
 using System.Text.Json;
 
-namespace TicketFlow.Identity.Api.Pages.Diagnostics;
+namespace TicketSalesPlatform.Identity.Api.Pages.Diagnostics;
 
 public class ViewModel
 {

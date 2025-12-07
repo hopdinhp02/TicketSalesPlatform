@@ -2,7 +2,7 @@
 // See LICENSE in the project root for license information.
 
 
-namespace TicketFlow.Identity.Api.Pages.Logout;
+namespace TicketSalesPlatform.Identity.Api.Pages.Logout;
 
 public static class LogoutOptions
 {

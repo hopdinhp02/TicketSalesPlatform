@@ -1,6 +1,6 @@
 ﻿using Duende.IdentityServer.Models;
 
-namespace TicketFlow.Identity.Api;
+namespace TicketSalesPlatform.Identity.Api;
 
 public static class Config
 {

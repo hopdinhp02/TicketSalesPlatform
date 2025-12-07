@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
-namespace TicketFlow.Identity.Api.Pages.ExternalLogin;
+namespace TicketSalesPlatform.Identity.Api.Pages.ExternalLogin;
 
 [AllowAnonymous]
 [SecurityHeaders]
