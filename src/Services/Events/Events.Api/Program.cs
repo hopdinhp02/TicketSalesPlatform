@@ -3,12 +3,12 @@ using MediatR;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using Serilog;
-using TicketFlow.Events.Application.Abstractions;
-using TicketFlow.Events.Application.CreateEvent;
-using TicketFlow.Events.Application.GetEventById;
-using TicketFlow.Events.Domain.Aggregates;
-using TicketFlow.Events.Infrastructure.Persistence;
-using TicketFlow.Events.Infrastructure.Projections;
+using TicketSalesPlatform.Events.Application.Abstractions;
+using TicketSalesPlatform.Events.Application.CreateEvent;
+using TicketSalesPlatform.Events.Application.GetEventById;
+using TicketSalesPlatform.Events.Domain.Aggregates;
+using TicketSalesPlatform.Events.Infrastructure.Persistence;
+using TicketSalesPlatform.Events.Infrastructure.Projections;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -37,7 +37,7 @@ builder
 builder.Services.AddAuthorization();
 
 builder.Services.AddMediatR(cfg =>
-    cfg.RegisterServicesFromAssembly(TicketFlow.Events.Application.AssemblyReference.Assembly)
+    cfg.RegisterServicesFromAssembly(TicketSalesPlatform.Events.Application.AssemblyReference.Assembly)
 );
 
 builder
@@ -53,7 +53,7 @@ builder
     .AddAsyncDaemon(JasperFx.Events.Daemon.DaemonMode.Solo); // Starts the background projection processor
 
 builder.Services.AddScoped<IRepository<Event>, EventRepository>();
-builder.Services.AddScoped<TicketFlow.Events.Application.Abstractions.IUnitOfWork, UnitOfWork>();
+builder.Services.AddScoped<TicketSalesPlatform.Events.Application.Abstractions.IUnitOfWork, UnitOfWork>();
 
 builder
     .Services.AddOpenTelemetry()

@@ -1,7 +1,7 @@
 ﻿using System.Net.Http.Json;
-using TicketFlow.Orders.Application.Abstractions;
+using TicketSalesPlatform.Orders.Application.Abstractions;
 
-namespace TicketFlow.Orders.Infrastructure.Clients
+namespace TicketSalesPlatform.Orders.Infrastructure.Clients
 {
     public class EventsClient : IEventsClient
     {

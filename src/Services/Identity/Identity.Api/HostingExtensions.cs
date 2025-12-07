@@ -1,7 +1,7 @@
 using Duende.IdentityServer;
 using Serilog;
 
-namespace TicketFlow.Identity.Api;
+namespace TicketSalesPlatform.Identity.Api;
 
 internal static class HostingExtensions
 {

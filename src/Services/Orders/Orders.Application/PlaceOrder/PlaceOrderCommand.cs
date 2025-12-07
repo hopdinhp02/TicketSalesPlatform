@@ -1,6 +1,6 @@
 ﻿using MediatR;
 
-namespace TicketFlow.Orders.Application.PlaceOrder
+namespace TicketSalesPlatform.Orders.Application.PlaceOrder
 {
     public sealed record PlaceOrderCommand(Guid CustomerId, List<OrderItemDto> Items)
         : IRequest<Guid>;

@@ -3,7 +3,7 @@
 
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
-namespace TicketFlow.Identity.Api.Pages.Account;
+namespace TicketSalesPlatform.Identity.Api.Pages.Account;
 
 public class AccessDeniedModel : PageModel
 {

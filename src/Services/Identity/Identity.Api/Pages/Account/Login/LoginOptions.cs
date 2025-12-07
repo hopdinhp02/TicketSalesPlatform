@@ -1,7 +1,7 @@
 // Copyright (c) Duende Software. All rights reserved.
 // See LICENSE in the project root for license information.
 
-namespace TicketFlow.Identity.Api.Pages.Login;
+namespace TicketSalesPlatform.Identity.Api.Pages.Login;
 
 public static class LoginOptions
 {

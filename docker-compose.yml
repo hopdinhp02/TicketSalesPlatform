@@ -7,7 +7,7 @@ services:
     environment:
       POSTGRES_USER: user
       POSTGRES_PASSWORD: password
-      POSTGRES_DB: ticketflowdb
+      POSTGRES_DB: TicketSalesPlatformdb
     volumes:
       - postgres_data:/var/lib/postgresql/data/
 
@@ -18,8 +18,8 @@ services:
       - "15672:15672"
 
   # Services
-  ticketflow.apigateway:
-    image: ${DOCKER_REGISTRY-}ticketflowapigateway
+  TicketSalesPlatform.apigateway:
+    image: ${DOCKER_REGISTRY-}TicketSalesPlatformapigateway
     build:
       context: .
       dockerfile: src/ApiGateway/Dockerfile
@@ -28,14 +28,14 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:8080
-      - Authentication__Authority=http://ticketflow.identity.api:8080
+      - Authentication__Authority=http://TicketSalesPlatform.identity.api:8080
     depends_on:
-      - ticketflow.events.api
-      - ticketflow.orders.api
-      - ticketflow.identity.api
+      - TicketSalesPlatform.events.api
+      - TicketSalesPlatform.orders.api
+      - TicketSalesPlatform.identity.api
 
-  ticketflow.events.api:
-    image: ${DOCKER_REGISTRY-}ticketfloweventsapi
+  TicketSalesPlatform.events.api:
+    image: ${DOCKER_REGISTRY-}TicketSalesPlatformeventsapi
     build:
       context: .
       dockerfile: src/Services/Events/Events.Api/Dockerfile
@@ -44,14 +44,14 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:8080
-      - ConnectionStrings__Database=Host=postgres;Port=5432;Database=ticketflowdb;Username=user;Password=password
-      - Authentication__Authority=http://ticketflow.identity.api:8080
+      - ConnectionStrings__Database=Host=postgres;Port=5432;Database=TicketSalesPlatformdb;Username=user;Password=password
+      - Authentication__Authority=http://TicketSalesPlatform.identity.api:8080
     depends_on:
       - postgres
-      - ticketflow.identity.api
+      - TicketSalesPlatform.identity.api
 
-  ticketflow.orders.api:
-    image: ${DOCKER_REGISTRY-}ticketflowordersapi
+  TicketSalesPlatform.orders.api:
+    image: ${DOCKER_REGISTRY-}TicketSalesPlatformordersapi
     build:
       context: .
       dockerfile: src/Services/Orders/Orders.Api/Dockerfile
@@ -60,17 +60,17 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:8080
-      - ConnectionStrings__Database=Host=postgres;Port=5432;Database=ticketflowdb;Username=user;Password=password
-      - Authentication__Authority=http://ticketflow.identity.api:8080
+      - ConnectionStrings__Database=Host=postgres;Port=5432;Database=TicketSalesPlatformdb;Username=user;Password=password
+      - Authentication__Authority=http://TicketSalesPlatform.identity.api:8080
       - MessageBroker__Host=rabbitmq
-      - Services__EventsApiUrl=http://ticketflow.events.api:8080
+      - Services__EventsApiUrl=http://TicketSalesPlatform.events.api:8080
     depends_on:
       - postgres
       - rabbitmq
-      - ticketflow.identity.api
+      - TicketSalesPlatform.identity.api
 
-  ticketflow.identity.api:
-    image: ${DOCKER_REGISTRY-}ticketflowidentityapi
+  TicketSalesPlatform.identity.api:
+    image: ${DOCKER_REGISTRY-}TicketSalesPlatformidentityapi
     build:
       context: .
       dockerfile: src/Services/Identity/Identity.Api/Dockerfile
@@ -79,12 +79,12 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:8080
-      - IdentityServer__IssuerUri=http://ticketflow.identity.api:8080
+      - IdentityServer__IssuerUri=http://TicketSalesPlatform.identity.api:8080
     volumes:
       - identity_keys:/app/keys
     
-  ticketflow.notifications.api:
-    image: ${DOCKER_REGISTRY-}ticketflownotificationsapi
+  TicketSalesPlatform.notifications.api:
+    image: ${DOCKER_REGISTRY-}TicketSalesPlatformnotificationsapi
     build:
       context: .
       dockerfile: src/Services/Notifications/Dockerfile

@@ -1,8 +1,8 @@
 ﻿using Marten;
-using TicketFlow.Events.Application.Abstractions;
-using TicketFlow.Events.Domain.Aggregates;
+using TicketSalesPlatform.Events.Application.Abstractions;
+using TicketSalesPlatform.Events.Domain.Aggregates;
 
-namespace TicketFlow.Events.Infrastructure.Persistence
+namespace TicketSalesPlatform.Events.Infrastructure.Persistence
 {
     public sealed class EventRepository : IRepository<Event>
     {

@@ -6,7 +6,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Events.Domain\TicketFlow.Events.Domain.csproj" />
+    <ProjectReference Include="..\Events.Domain\TicketSalesPlatform.Events.Domain.csproj" />
   </ItemGroup>
 
   <PropertyGroup>

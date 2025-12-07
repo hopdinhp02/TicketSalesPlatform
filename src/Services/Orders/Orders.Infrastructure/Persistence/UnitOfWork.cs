@@ -1,7 +1,7 @@
 ﻿using Marten;
-using TicketFlow.Orders.Application.Abstractions;
+using TicketSalesPlatform.Orders.Application.Abstractions;
 
-namespace TicketFlow.Orders.Infrastructure.Persistence
+namespace TicketSalesPlatform.Orders.Infrastructure.Persistence
 {
     public sealed class UnitOfWork : IUnitOfWork
     {

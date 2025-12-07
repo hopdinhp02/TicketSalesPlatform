@@ -12,23 +12,23 @@ EXPOSE 8081
 FROM mcr.microsoft.com/dotnet/sdk:8.0-noble AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["src/Services/Events/Events.Api/TicketFlow.Events.Api.csproj", "src/Services/Events/Events.Api/"]
-COPY ["src/Services/Events/Events.Application/TicketFlow.Events.Application.csproj", "src/Services/Events/Events.Application/"]
-COPY ["src/Services/Events/Events.Domain/TicketFlow.Events.Domain.csproj", "src/Services/Events/Events.Domain/"]
+COPY ["src/Services/Events/Events.Api/TicketSalesPlatform.Events.Api.csproj", "src/Services/Events/Events.Api/"]
+COPY ["src/Services/Events/Events.Application/TicketSalesPlatform.Events.Application.csproj", "src/Services/Events/Events.Application/"]
+COPY ["src/Services/Events/Events.Domain/TicketSalesPlatform.Events.Domain.csproj", "src/Services/Events/Events.Domain/"]
 COPY ["src/BuildingBlocks/SharedKernel/SharedKernel.csproj", "src/BuildingBlocks/SharedKernel/"]
-COPY ["src/Services/Events/Events.Infrastructure/TicketFlow.Events.Infrastructure.csproj", "src/Services/Events/Events.Infrastructure/"]
-RUN dotnet restore "./src/Services/Events/Events.Api/TicketFlow.Events.Api.csproj"
+COPY ["src/Services/Events/Events.Infrastructure/TicketSalesPlatform.Events.Infrastructure.csproj", "src/Services/Events/Events.Infrastructure/"]
+RUN dotnet restore "./src/Services/Events/Events.Api/TicketSalesPlatform.Events.Api.csproj"
 COPY . .
 WORKDIR "/src/src/Services/Events/Events.Api"
-RUN dotnet build "./TicketFlow.Events.Api.csproj" -c $BUILD_CONFIGURATION -o /app/build
+RUN dotnet build "./TicketSalesPlatform.Events.Api.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 # This stage is used to publish the service project to be copied to the final stage
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "./TicketFlow.Events.Api.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "./TicketSalesPlatform.Events.Api.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
 # This stage is used in production or when running from VS in regular mode (Default when not using the Debug configuration)
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "TicketFlow.Events.Api.dll"]
+ENTRYPOINT ["dotnet", "TicketSalesPlatform.Events.Api.dll"]

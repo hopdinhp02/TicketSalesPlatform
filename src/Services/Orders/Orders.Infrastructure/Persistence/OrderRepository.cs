@@ -1,8 +1,8 @@
 ﻿using Marten;
-using Orders.Domain.Aggregates;
-using TicketFlow.Orders.Application.Abstractions;
+using TicketSalesPlatform.Orders.Application.Abstractions;
+using TicketSalesPlatform.Orders.Domain.Aggregates;
 
-namespace TicketFlow.Orders.Infrastructure.Persistence
+namespace TicketSalesPlatform.Orders.Infrastructure.Persistence
 {
     public sealed class OrderRepository : IRepository<Order>
     {

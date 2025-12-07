@@ -1,9 +1,9 @@
 ﻿using MassTransit;
 using MediatR;
-using TicketFlow.IntegrationEvents;
-using TicketFlow.Orders.Domain.DomainEvents;
+using TicketSalesPlatform.IntegrationEvents;
+using TicketSalesPlatform.Orders.Domain.DomainEvents;
 
-namespace TicketFlow.Orders.Application.PlaceOrder
+namespace TicketSalesPlatform.Orders.Application.PlaceOrder
 {
     public sealed class OrderPlacedDomainEventHandler : INotificationHandler<OrderPlaced>
     {

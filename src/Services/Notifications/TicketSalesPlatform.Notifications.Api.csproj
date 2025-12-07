@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <ItemGroup>
-    <ProjectReference Include="..\..\BuildingBlocks\IntegrationEvents\TicketFlow.IntegrationEvents.csproj" />
+    <ProjectReference Include="..\..\BuildingBlocks\IntegrationEvents\TicketSalesPlatform.IntegrationEvents.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -6,7 +6,7 @@
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
-          "Host": "ticketflow.events.api",
+          "Host": "TicketSalesPlatform.events.api",
           "Port": 8080
         }
       ],
@@ -23,7 +23,7 @@
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
-          "Host": "ticketflow.orders.api",
+          "Host": "TicketSalesPlatform.orders.api",
           "Port": 8080
         }
       ],

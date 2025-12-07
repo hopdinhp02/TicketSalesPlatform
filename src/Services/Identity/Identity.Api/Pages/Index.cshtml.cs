@@ -6,7 +6,7 @@ using System.Reflection;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
-namespace TicketFlow.Identity.Api.Pages.Home;
+namespace TicketSalesPlatform.Identity.Api.Pages.Home;
 
 [AllowAnonymous]
 public class Index : PageModel

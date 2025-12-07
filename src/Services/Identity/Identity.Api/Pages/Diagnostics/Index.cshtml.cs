@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Authorization;
 
-namespace TicketFlow.Identity.Api.Pages.Diagnostics;
+namespace TicketSalesPlatform.Identity.Api.Pages.Diagnostics;
 
 [SecurityHeaders]
 [Authorize]

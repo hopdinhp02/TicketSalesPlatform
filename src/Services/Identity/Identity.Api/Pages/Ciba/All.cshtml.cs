@@ -6,7 +6,7 @@ using Duende.IdentityServer.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
-namespace TicketFlow.Identity.Api.Pages.Ciba;
+namespace TicketSalesPlatform.Identity.Api.Pages.Ciba;
 
 [SecurityHeaders]
 [Authorize]

@@ -1,8 +1,8 @@
 ﻿using Marten.Events.Aggregation;
-using TicketFlow.Events.Domain.DomainEvents;
-using TicketFlow.Events.Domain.ReadModels;
+using TicketSalesPlatform.Events.Domain.DomainEvents;
+using TicketSalesPlatform.Events.Domain.ReadModels;
 
-namespace TicketFlow.Events.Infrastructure.Projections
+namespace TicketSalesPlatform.Events.Infrastructure.Projections
 {
     /// <summary>
     /// A Marten projection that builds the EventSummary read model.

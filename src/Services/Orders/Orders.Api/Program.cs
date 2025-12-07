@@ -5,16 +5,16 @@ using MassTransit;
 using MediatR;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
-using Orders.Domain.Aggregates;
 using Polly;
 using Serilog;
-using TicketFlow.Orders.Application.Abstractions;
-using TicketFlow.Orders.Application.GetOrderById;
-using TicketFlow.Orders.Application.PlaceOrder;
-using TicketFlow.Orders.Infrastructure.Authentication;
-using TicketFlow.Orders.Infrastructure.Clients;
-using TicketFlow.Orders.Infrastructure.Persistence;
-using TicketFlow.Orders.Infrastructure.Projections;
+using TicketSalesPlatform.Orders.Application.Abstractions;
+using TicketSalesPlatform.Orders.Application.GetOrderById;
+using TicketSalesPlatform.Orders.Application.PlaceOrder;
+using TicketSalesPlatform.Orders.Domain.Aggregates;
+using TicketSalesPlatform.Orders.Infrastructure.Authentication;
+using TicketSalesPlatform.Orders.Infrastructure.Clients;
+using TicketSalesPlatform.Orders.Infrastructure.Persistence;
+using TicketSalesPlatform.Orders.Infrastructure.Projections;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -40,7 +40,9 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddMediatR(cfg =>
-    cfg.RegisterServicesFromAssembly(TicketFlow.Orders.Application.AssemblyReference.Assembly)
+    cfg.RegisterServicesFromAssembly(
+        TicketSalesPlatform.Orders.Application.AssemblyReference.Assembly
+    )
 );
 
 builder

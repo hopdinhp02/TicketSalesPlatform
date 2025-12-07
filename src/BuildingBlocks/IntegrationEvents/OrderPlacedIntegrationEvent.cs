@@ -1,4 +1,4 @@
-﻿namespace TicketFlow.IntegrationEvents
+﻿namespace TicketSalesPlatform.IntegrationEvents
 {
     public sealed record OrderPlacedIntegrationEvent(
         Guid OrderId,

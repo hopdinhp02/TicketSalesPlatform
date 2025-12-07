@@ -1,8 +1,8 @@
-﻿using TicketFlow.Events.Application.Abstractions;
-using TicketFlow.Events.Domain.Aggregates;
+﻿using TicketSalesPlatform.Events.Application.Abstractions;
+using TicketSalesPlatform.Events.Domain.Aggregates;
 using MediatR;
 
-namespace TicketFlow.Events.Application.CreateEvent
+namespace TicketSalesPlatform.Events.Application.CreateEvent
 {
     public sealed class CreateEventCommandHandler : IRequestHandler<CreateEventCommand, Guid>
     {

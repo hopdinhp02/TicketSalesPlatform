@@ -1,6 +1,6 @@
 ﻿using System.Collections.Concurrent;
 
-namespace TicketFlow.Notifications.Api.Idempotency
+namespace TicketSalesPlatform.Notifications.Api.Idempotency
 {
     /// <summary>
     /// A simple in-memory service to track processed message IDs to ensure idempotency.

@@ -1,4 +1,4 @@
-﻿namespace TicketFlow.Orders.Domain.ReadModels
+﻿namespace TicketSalesPlatform.Orders.Domain.ReadModels
 {
     public class OrderDetails
     {

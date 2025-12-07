@@ -7,7 +7,7 @@ using Duende.IdentityServer.Test;
 using System.Security.Claims;
 using System.Text.Json;
 
-namespace TicketFlow.Identity.Api;
+namespace TicketSalesPlatform.Identity.Api;
 
 public static class TestUsers
 {

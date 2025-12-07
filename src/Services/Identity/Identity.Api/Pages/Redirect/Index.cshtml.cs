@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
-namespace TicketFlow.Identity.Api.Pages.Redirect;
+namespace TicketSalesPlatform.Identity.Api.Pages.Redirect;
 
 [AllowAnonymous]
 public class IndexModel : PageModel

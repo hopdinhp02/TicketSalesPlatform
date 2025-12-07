@@ -5,7 +5,7 @@ using Duende.IdentityServer.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
-namespace TicketFlow.Identity.Api.Pages.Error;
+namespace TicketSalesPlatform.Identity.Api.Pages.Error;
 
 [AllowAnonymous]
 [SecurityHeaders]

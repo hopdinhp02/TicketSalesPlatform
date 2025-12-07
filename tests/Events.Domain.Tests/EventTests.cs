@@ -1,8 +1,8 @@
 ﻿using FluentAssertions;
-using TicketFlow.Events.Domain.Aggregates;
-using TicketFlow.Events.Domain.DomainEvents;
+using TicketSalesPlatform.Events.Domain.Aggregates;
+using TicketSalesPlatform.Events.Domain.DomainEvents;
 
-namespace TicketFlow.Events.Domain.Tests;
+namespace TicketSalesPlatform.Events.Domain.Tests;
 
 public class EventTests
 {

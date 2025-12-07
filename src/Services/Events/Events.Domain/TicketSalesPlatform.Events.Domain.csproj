@@ -12,7 +12,7 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-	<RootNamespace>TicketFlow.Events.Domain</RootNamespace>
+	<RootNamespace>TicketSalesPlatform.Events.Domain</RootNamespace>
   </PropertyGroup>
 
 </Project>

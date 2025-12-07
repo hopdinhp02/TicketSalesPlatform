@@ -4,7 +4,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
-namespace TicketFlow.Identity.Api.Pages.Device;
+namespace TicketSalesPlatform.Identity.Api.Pages.Device;
 
 [SecurityHeaders]
 [Authorize]

@@ -1,8 +1,8 @@
 ﻿using MassTransit;
-using TicketFlow.IntegrationEvents;
-using TicketFlow.Notifications.Api.Idempotency;
+using TicketSalesPlatform.IntegrationEvents;
+using TicketSalesPlatform.Notifications.Api.Idempotency;
 
-namespace TicketFlow.Notifications.Api.Consumers
+namespace TicketSalesPlatform.Notifications.Api.Consumers
 {
     public sealed class OrderPlacedConsumer : IConsumer<OrderPlacedIntegrationEvent>
     {

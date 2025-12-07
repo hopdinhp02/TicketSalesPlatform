@@ -1,10 +1,9 @@
 ﻿using MediatR;
 using Microsoft.Extensions.Logging;
-using Orders.Domain.Aggregates;
-using TicketFlow.Orders.Application.Abstractions;
-using TicketFlow.Orders.Domain.Aggregates;
+using TicketSalesPlatform.Orders.Application.Abstractions;
+using TicketSalesPlatform.Orders.Domain.Aggregates;
 
-namespace TicketFlow.Orders.Application.PlaceOrder
+namespace TicketSalesPlatform.Orders.Application.PlaceOrder
 {
     public sealed class PlaceOrderCommandHandler : IRequestHandler<PlaceOrderCommand, Guid>
     {

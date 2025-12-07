@@ -1,6 +1,6 @@
 ﻿using SharedKernel;
 
-namespace TicketFlow.Orders.Domain.DomainEvents
+namespace TicketSalesPlatform.Orders.Domain.DomainEvents
 {
     public sealed record OrderPlaced(
         Guid OrderId,

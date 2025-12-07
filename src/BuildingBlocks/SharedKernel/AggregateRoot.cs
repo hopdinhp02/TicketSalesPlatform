@@ -19,7 +19,7 @@
         public IReadOnlyCollection<IDomainEvent> GetDomainEvents() => _domainEvents.ToList();
 
         /// <summary>
-        /// Clears the collection of domain TicketFlow.Events. This is typically called after the events
+        /// Clears the collection of domain TicketSalesPlatform.Events. This is typically called after the events
         /// have been dispatched.
         /// </summary>
         public void ClearDomainEvents() => _domainEvents.Clear();

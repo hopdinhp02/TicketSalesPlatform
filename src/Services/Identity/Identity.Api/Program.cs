@@ -1,7 +1,7 @@
 ﻿using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using Serilog;
-using TicketFlow.Identity.Api;
+using TicketSalesPlatform.Identity.Api;
 
 Log.Logger = new LoggerConfiguration().WriteTo.Console().CreateBootstrapLogger();
 

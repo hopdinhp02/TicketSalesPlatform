@@ -11,7 +11,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
-namespace TicketFlow.Identity.Api.Pages.Consent;
+namespace TicketSalesPlatform.Identity.Api.Pages.Consent;
 
 [Authorize]
 [SecurityHeaders]
