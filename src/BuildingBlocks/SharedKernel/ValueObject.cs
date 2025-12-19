@@ -45,9 +45,12 @@
 
         public override int GetHashCode()
         {
-            return GetEqualityComponents()
-                .Select(x => x?.GetHashCode() ?? 0)
-                .Aggregate((x, y) => x ^ y);
+            var hash = new HashCode();
+            foreach (var component in GetEqualityComponents())
+            {
+                hash.Add(component);
+            }
+            return hash.ToHashCode();
         }
     }
 }
