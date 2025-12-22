@@ -4,11 +4,11 @@
       "commandName": "DockerCompose",
       "commandVersion": "1.0",
       "serviceActions": {
-        "TicketSalesPlatform.apigateway": "StartDebugging",
-        "TicketSalesPlatform.events.api": "StartDebugging",
-        "TicketSalesPlatform.orders.api": "StartDebugging",
-        "TicketSalesPlatform.identity.api": "StartDebugging",
-        "TicketSalesPlatform.notifications.api": "StartDebugging"
+        "ticketsalesplatform.apigateway": "StartDebugging",
+        "ticketsalesplatform.events.api": "StartDebugging",
+        "ticketsalesplatform.orders.api": "StartDebugging",
+        "ticketsalesplatform.identity.api": "StartDebugging",
+        "ticketsalesplatform.notifications.api": "StartDebugging"
       }
     }
   }
