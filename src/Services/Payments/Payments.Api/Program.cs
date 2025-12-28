@@ -1,3 +1,4 @@
+using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using TicketSalesPlatform.Payments.Api.Data;
 using TicketSalesPlatform.Payments.Api.Endpoints;
@@ -29,6 +30,32 @@ builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Progr
 var connectionString = builder.Configuration.GetConnectionString("Database");
 builder.Services.AddDbContext<PaymentDbContext>(options => options.UseNpgsql(connectionString));
 
+builder.Services.AddMassTransit(x =>
+{
+    x.SetEndpointNameFormatter(new KebabCaseEndpointNameFormatter("payment", false));
+
+    x.AddConsumers(typeof(Program).Assembly);
+
+    x.UsingRabbitMq(
+        (context, cfg) =>
+        {
+            var host = builder.Configuration["MessageBroker:Host"];
+            cfg.Host(
+                host,
+                "/",
+                h =>
+                {
+                    h.Username("guest");
+                    h.Password("guest");
+                }
+            );
+
+            cfg.UseMessageRetry(r => r.Interval(3, TimeSpan.FromSeconds(5)));
+
+            cfg.ConfigureEndpoints(context);
+        }
+    );
+});
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())

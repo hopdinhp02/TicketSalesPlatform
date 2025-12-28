@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using Microsoft.Extensions.Logging;
 using TicketSalesPlatform.Orders.Application.Abstractions;
+using TicketSalesPlatform.Orders.Application.Clients;
 using TicketSalesPlatform.Orders.Domain.Aggregates;
 
 namespace TicketSalesPlatform.Orders.Application.PlaceOrder
@@ -11,6 +12,7 @@ namespace TicketSalesPlatform.Orders.Application.PlaceOrder
         private readonly IUnitOfWork _unitOfWork;
         private readonly IPublisher _publisher;
         private readonly IEventsClient _eventsClient;
+        private readonly IInventoryClient _inventoryClient;
         private readonly ILogger<PlaceOrderCommandHandler> _logger;
 
         public PlaceOrderCommandHandler(
@@ -18,6 +20,7 @@ namespace TicketSalesPlatform.Orders.Application.PlaceOrder
             IUnitOfWork unitOfWork,
             IPublisher publisher,
             IEventsClient eventsClient,
+            IInventoryClient inventoryClient,
             ILogger<PlaceOrderCommandHandler> logger
         )
         {
@@ -25,6 +28,7 @@ namespace TicketSalesPlatform.Orders.Application.PlaceOrder
             _unitOfWork = unitOfWork;
             _publisher = publisher;
             _eventsClient = eventsClient;
+            _inventoryClient = inventoryClient;
             _logger = logger;
         }
 
@@ -33,35 +37,47 @@ namespace TicketSalesPlatform.Orders.Application.PlaceOrder
             CancellationToken cancellationToken
         )
         {
-            foreach (var item in request.Items)
-            {
-                // This is a placeholder for the eventId
-                var eventId = Guid.NewGuid();
+            var orderItemsEntity = new List<OrderItem>();
 
-                var availability = await _eventsClient.GetTicketAvailabilityAsync(
-                    eventId,
-                    item.TicketTypeId,
+            foreach (var itemDto in request.Items)
+            {
+                var ticketInfo = await _eventsClient.GetTicketTypeAsync(
+                    itemDto.TicketTypeId,
                     cancellationToken
                 );
 
-                if (availability is null || availability.AvailableQuantity < item.Quantity)
+                if (ticketInfo is null)
                 {
                     throw new InvalidOperationException(
-                        $"Not enough tickets available for TicketTypeId: {item.TicketTypeId}"
+                        $"TicketType {itemDto.TicketTypeId} does not exist or is invalid."
                     );
                 }
+
+                var hasStock = await _inventoryClient.CheckStockAsync(
+                    itemDto.TicketTypeId,
+                    itemDto.Quantity,
+                    cancellationToken
+                );
+
+                if (!hasStock)
+                {
+                    throw new InvalidOperationException(
+                        $"Insufficient stock for ticket: {ticketInfo.Name}. Request: {itemDto.Quantity}"
+                    );
+                }
+
+                orderItemsEntity.Add(
+                    new OrderItem(
+                        Guid.Empty,
+                        ticketInfo.Id,
+                        ticketInfo.EventName,
+                        ticketInfo.Price,
+                        itemDto.Quantity
+                    )
+                );
             }
 
-            var orderItems = request
-                .Items.Select(item => new OrderItem(
-                    Guid.Empty,
-                    item.TicketTypeId,
-                    item.EventName,
-                    item.UnitPrice,
-                    item.Quantity
-                ))
-                .ToList();
-            var order = Order.Create(request.CustomerId, orderItems);
+            var order = Order.Create(request.CustomerId, orderItemsEntity);
 
             _logger.LogInformation("Creating new order {@Order}", order);
 
@@ -74,7 +90,6 @@ namespace TicketSalesPlatform.Orders.Application.PlaceOrder
             }
             order.ClearDomainEvents();
 
-            _logger.LogInformation("Order created successfully with Id: {OrderId}", order.Id);
             return order.Id;
         }
     }

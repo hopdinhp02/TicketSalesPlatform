@@ -4,6 +4,9 @@
         Guid OrderId,
         Guid CustomerId,
         decimal TotalPrice,
-        DateTime OrderDate
+        DateTime OrderDate,
+        List<OrderTicketItemDto> Items
     );
+
+    public sealed record OrderTicketItemDto(Guid TicketTypeId, int Quantity);
 }

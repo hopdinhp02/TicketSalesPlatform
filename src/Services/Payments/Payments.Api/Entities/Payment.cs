@@ -71,6 +71,22 @@ namespace TicketSalesPlatform.Payments.Api.Entities
 
             AddDomainEvent(new PaymentRefunded(Id, OrderId));
         }
+
+        public void Cancel(string reason)
+        {
+            if (Status == PaymentStatus.Completed)
+            {
+                throw new InvalidOperationException("Cannot cancel a completed payment.");
+            }
+
+            if (Status != PaymentStatus.Cancelled)
+            {
+                Status = PaymentStatus.Cancelled;
+                FailureReason = reason;
+
+                // AddDomainEvent(new PaymentCancelled(Id));
+            }
+        }
     }
 
     public enum PaymentStatus
@@ -79,5 +95,6 @@ namespace TicketSalesPlatform.Payments.Api.Entities
         Completed,
         Failed,
         Refunded,
+        Cancelled,
     }
 }

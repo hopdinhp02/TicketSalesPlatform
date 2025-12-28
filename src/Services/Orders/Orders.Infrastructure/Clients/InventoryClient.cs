@@ -3,37 +3,41 @@ using TicketSalesPlatform.Orders.Application.Clients;
 
 namespace TicketSalesPlatform.Orders.Infrastructure.Clients
 {
-    public class EventsClient : IEventsClient
+    public class InventoryClient : IInventoryClient
     {
         private readonly HttpClient _httpClient;
 
-        public EventsClient(HttpClient httpClient)
+        public InventoryClient(HttpClient httpClient)
         {
             _httpClient = httpClient;
         }
 
-        public async Task<TicketTypeDto?> GetTicketTypeAsync(
+        public async Task<bool> CheckStockAsync(
             Guid ticketTypeId,
+            int quantity,
             CancellationToken cancellationToken = default
         )
         {
             try
             {
-                var response = await _httpClient.GetFromJsonAsync<TicketTypeDto>(
-                    $"api/ticket-types/{ticketTypeId}",
+                var response = await _httpClient.GetFromJsonAsync<InventoryAvailabilityDto>(
+                    $"api/inventory/ticket-types/{ticketTypeId}/availability",
                     cancellationToken
                 );
-                return response;
+
+                return response != null && response.AvailableQuantity >= quantity;
             }
             catch (HttpRequestException ex)
                 when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
             {
-                return null;
+                return false;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                throw new Exception($"Error communicating with Event Service: {ex.Message}", ex);
+                return false;
             }
         }
+
+        internal record InventoryAvailabilityDto(Guid TicketTypeId, int AvailableQuantity);
     }
 }

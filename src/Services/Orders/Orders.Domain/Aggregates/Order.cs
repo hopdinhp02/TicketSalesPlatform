@@ -64,5 +64,35 @@ namespace TicketSalesPlatform.Orders.Domain.Aggregates
 
             return order;
         }
+
+        public void MarkAsPaid()
+        {
+            // Idempotency
+            if (Status == OrderStatus.Paid)
+                return;
+
+            if (Status == OrderStatus.Cancelled)
+                throw new InvalidOperationException("Cannot pay for a cancelled order.");
+
+            Status = OrderStatus.Paid;
+
+            AddDomainEvent(new OrderPaid(Id));
+        }
+
+        public void MarkAsCancelled(string reason)
+        {
+            if (Status == OrderStatus.Paid)
+            {
+                // throw new InvalidOperationException("Cannot cancel a paid order.");
+                return;
+            }
+
+            if (Status == OrderStatus.Cancelled)
+                return;
+
+            Status = OrderStatus.Cancelled;
+
+            AddDomainEvent(new OrderCancelled(Id, reason));
+        }
     }
 }
