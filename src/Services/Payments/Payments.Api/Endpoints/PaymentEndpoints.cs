@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using TicketSalesPlatform.Payments.Api.Data;
 using TicketSalesPlatform.Payments.Api.Entities;
 
@@ -21,14 +22,24 @@ namespace TicketSalesPlatform.Payments.Api.Endpoints
             IPublisher publisher
         )
         {
-            Payment payment;
-            try
+            var payment = await db.Payments.FirstOrDefaultAsync(p => p.OrderId == request.OrderId);
+
+            if (payment is null)
             {
-                payment = new Payment(request.OrderId, request.UserId, request.Amount);
+                try
+                {
+                    payment = new Payment(request.OrderId, request.UserId, request.Amount);
+                    db.Payments.Add(payment);
+                }
+                catch (ArgumentException ex)
+                {
+                    return Results.BadRequest(new { Error = ex.Message });
+                }
             }
-            catch (ArgumentException ex)
+
+            if (payment.Status == PaymentStatus.Completed)
             {
-                return Results.BadRequest(new { Error = ex.Message });
+                return Results.BadRequest(new { Error = "Order is already paid." });
             }
 
             // Mocking external payment gateway
@@ -43,7 +54,6 @@ namespace TicketSalesPlatform.Payments.Api.Endpoints
                 payment.Fail("Payment gateway declined transaction.");
             }
 
-            db.Payments.Add(payment);
             await db.SaveChangesAsync();
 
             foreach (var domainEvent in payment.GetDomainEvents())
@@ -51,7 +61,6 @@ namespace TicketSalesPlatform.Payments.Api.Endpoints
                 await publisher.Publish(domainEvent);
             }
             payment.ClearDomainEvents();
-
             return payment.Status == PaymentStatus.Completed
                 ? Results.Ok(new { Message = "Payment successful", PaymentId = payment.Id })
                 : Results.BadRequest(

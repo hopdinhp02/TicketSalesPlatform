@@ -5,14 +5,15 @@ using MassTransit;
 using MediatR;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
-using Polly;
 using Serilog;
 using TicketSalesPlatform.Orders.Application.Abstractions;
+using TicketSalesPlatform.Orders.Application.Clients;
 using TicketSalesPlatform.Orders.Application.GetOrderById;
 using TicketSalesPlatform.Orders.Application.PlaceOrder;
 using TicketSalesPlatform.Orders.Domain.Aggregates;
 using TicketSalesPlatform.Orders.Infrastructure.Authentication;
 using TicketSalesPlatform.Orders.Infrastructure.Clients;
+using TicketSalesPlatform.Orders.Infrastructure.Extensions;
 using TicketSalesPlatform.Orders.Infrastructure.Persistence;
 using TicketSalesPlatform.Orders.Infrastructure.Projections;
 
@@ -55,9 +56,12 @@ builder
     .UseLightweightSessions()
     .AddAsyncDaemon(DaemonMode.Solo);
 
-builder.Services.AddMassTransit(busConfigurator =>
+builder.Services.AddMassTransit(x =>
 {
-    busConfigurator.UsingRabbitMq(
+    x.SetEndpointNameFormatter(new KebabCaseEndpointNameFormatter("order", false));
+
+    x.AddConsumers(TicketSalesPlatform.Orders.Application.AssemblyReference.Assembly);
+    x.UsingRabbitMq(
         (context, cfg) =>
         {
             var host = builder.Configuration["MessageBroker:Host"];
@@ -70,6 +74,10 @@ builder.Services.AddMassTransit(busConfigurator =>
                     h.Password("guest");
                 }
             );
+
+            cfg.UseMessageRetry(r => r.Interval(3, TimeSpan.FromSeconds(5)));
+
+            cfg.ConfigureEndpoints(context);
         }
     );
 });
@@ -83,20 +91,14 @@ builder
         var eventsApiUrl = builder.Configuration["Services:EventsApiUrl"];
         client.BaseAddress = new Uri(eventsApiUrl!);
     })
-    .AddHttpMessageHandler<TokenPropagationHandler>()
-    .AddStandardResilienceHandler(options =>
-    {
-        // Configure the standard retry policy
-        options.Retry.MaxRetryAttempts = 5;
-        options.Retry.Delay = TimeSpan.FromSeconds(1);
-        options.Retry.BackoffType = DelayBackoffType.Exponential;
+    .AddDefaultResilience();
 
-        // Configure the standard circuit breaker policy
-        options.CircuitBreaker.SamplingDuration = TimeSpan.FromSeconds(30);
-        options.CircuitBreaker.FailureRatio = 0.5;
-        options.CircuitBreaker.MinimumThroughput = 5;
-        options.CircuitBreaker.BreakDuration = TimeSpan.FromSeconds(60);
-    });
+builder
+    .Services.AddHttpClient<IInventoryClient, InventoryClient>(client =>
+    {
+        client.BaseAddress = new Uri(builder.Configuration["Services:InventoryApiUrl"]!);
+    })
+    .AddDefaultResilience();
 
 // Register Repositories and Unit of Work
 builder.Services.AddScoped<IRepository<Order>, OrderRepository>();

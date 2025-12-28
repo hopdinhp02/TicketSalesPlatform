@@ -25,6 +25,15 @@ namespace TicketSalesPlatform.Orders.Infrastructure.Persistence
             return await _session.Events.AggregateStreamAsync<Order>(id, token: cancellationToken);
         }
 
-        // NOTE: An 'Update' method would use session.Events.Append(entity.Id, entity.GetDomainEvents());
+        public void Update(Order entity)
+        {
+            var events = entity.GetDomainEvents();
+
+            if (events != null && events.Any())
+            {
+                _session.Events.Append(entity.Id, events);
+                entity.ClearDomainEvents();
+            }
+        }
     }
 }

@@ -8,8 +8,10 @@ namespace TicketSalesPlatform.Inventory.Api.Entities
     {
         public string SeatNo { get; private set; }
         public Guid EventId { get; private set; }
+        public Guid TicketTypeId { get; private set; }
         public SeatStatus Status { get; private set; }
         public Guid? UserId { get; private set; }
+        public Guid? OrderId { get; private set; }
         public DateTime? ReservationExpiresAt { get; private set; }
 
         [Timestamp]
@@ -18,15 +20,16 @@ namespace TicketSalesPlatform.Inventory.Api.Entities
         private Seat()
             : base(Guid.NewGuid()) { }
 
-        public Seat(string seatNo, Guid eventId)
+        public Seat(string seatNo, Guid eventId, Guid ticketTypeId)
             : base(Guid.NewGuid())
         {
             SeatNo = seatNo;
             EventId = eventId;
+            TicketTypeId = ticketTypeId;
             Status = SeatStatus.Available;
         }
 
-        public void Reserve(Guid userId)
+        public void Reserve(Guid userId, Guid orderId)
         {
             if (Status != SeatStatus.Available)
             {
@@ -35,9 +38,10 @@ namespace TicketSalesPlatform.Inventory.Api.Entities
 
             Status = SeatStatus.Reserved;
             UserId = userId;
+            OrderId = orderId;
             ReservationExpiresAt = DateTime.UtcNow.AddMinutes(15);
 
-            AddDomainEvent(new SeatReserved(Id, userId, ReservationExpiresAt.Value));
+            AddDomainEvent(new SeatReserved(Id, userId, orderId, ReservationExpiresAt.Value));
         }
 
         public void Release(Guid userId)
@@ -49,9 +53,34 @@ namespace TicketSalesPlatform.Inventory.Api.Entities
 
             Status = SeatStatus.Available;
             UserId = null;
+            OrderId = null;
             ReservationExpiresAt = null;
 
-            // Optionally raise SeatReleasedDomainEvent here
+            // Optionally: AddDomainEvent(new SeatReleased(Id));
+        }
+
+        public void MarkAsSold()
+        {
+            if (Status != SeatStatus.Reserved)
+                throw new InvalidOperationException("Seat must be Reserved before Sold");
+
+            Status = SeatStatus.Sold;
+            ReservationExpiresAt = null;
+
+            // Optionally: AddDomainEvent(new SeatSold(Id));
+        }
+
+        public void Expire()
+        {
+            if (Status != SeatStatus.Reserved)
+                return;
+
+            Status = SeatStatus.Available;
+            UserId = null;
+            OrderId = null;
+            ReservationExpiresAt = null;
+
+            // AddDomainEvent(new SeatExpired(...));
         }
     }
 

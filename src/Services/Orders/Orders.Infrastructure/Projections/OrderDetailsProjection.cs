@@ -31,5 +31,16 @@ namespace TicketSalesPlatform.Orders.Infrastructure.Projections
                 Items = items,
             };
         }
+
+        public void Apply(OrderPaid e, OrderDetails current)
+        {
+            current.Status = OrderStatus.Paid.ToString();
+        }
+
+        public void Apply(OrderCancelled e, OrderDetails current)
+        {
+            current.Status = OrderStatus.Cancelled.ToString();
+            current.CancellationReason = e.Reason;
+        }
     }
 }

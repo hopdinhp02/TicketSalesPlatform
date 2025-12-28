@@ -37,7 +37,9 @@ builder
 builder.Services.AddAuthorization();
 
 builder.Services.AddMediatR(cfg =>
-    cfg.RegisterServicesFromAssembly(TicketSalesPlatform.Events.Application.AssemblyReference.Assembly)
+    cfg.RegisterServicesFromAssembly(
+        TicketSalesPlatform.Events.Application.AssemblyReference.Assembly
+    )
 );
 
 builder
@@ -53,7 +55,10 @@ builder
     .AddAsyncDaemon(JasperFx.Events.Daemon.DaemonMode.Solo); // Starts the background projection processor
 
 builder.Services.AddScoped<IRepository<Event>, EventRepository>();
-builder.Services.AddScoped<TicketSalesPlatform.Events.Application.Abstractions.IUnitOfWork, UnitOfWork>();
+builder.Services.AddScoped<
+    TicketSalesPlatform.Events.Application.Abstractions.IUnitOfWork,
+    UnitOfWork
+>();
 
 builder
     .Services.AddOpenTelemetry()
@@ -96,7 +101,6 @@ app.MapPost(
     .WithName("CreateEvent")
     .WithTags("Events")
     .RequireAuthorization();
-;
 
 app.MapGet(
         "/api/events/{id:guid}",
@@ -109,22 +113,6 @@ app.MapGet(
         }
     )
     .WithName("GetEventById")
-    .WithTags("Events")
-    .RequireAuthorization();
-;
-
-app.MapGet(
-        "/api/events/{eventId:guid}/tickets/{ticketTypeId:guid}/availability",
-        async (Guid eventId, Guid ticketTypeId, IQuerySession querySession) =>
-        {
-            var availableTickets = 10; // Simulated availability
-
-            return Results.Ok(
-                new { TicketTypeId = ticketTypeId, AvailableQuantity = availableTickets }
-            );
-        }
-    )
-    .WithName("GetTicketAvailability")
     .WithTags("Events")
     .RequireAuthorization();
 

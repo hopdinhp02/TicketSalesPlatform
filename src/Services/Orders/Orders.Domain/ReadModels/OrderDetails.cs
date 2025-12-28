@@ -8,6 +8,7 @@
         public decimal TotalPrice { get; set; }
         public List<OrderItemDetails> Items { get; set; } = new();
         public DateTime PlacedOn { get; set; }
+        public string? CancellationReason { get; set; }
     }
 
     public class OrderItemDetails

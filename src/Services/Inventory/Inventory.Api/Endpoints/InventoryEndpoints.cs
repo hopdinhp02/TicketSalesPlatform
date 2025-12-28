@@ -16,6 +16,10 @@ namespace TicketSalesPlatform.Inventory.Api.Endpoints
             group.MapPost("/release", ReleaseSeat).RequireAuthorization();
             group.MapGet("/seats/{eventId}", GetSeats);
             group.MapPost("/init", InitData); // Helper to create dummy data
+            group.MapGet(
+                "/ticket-types/{ticketTypeId:guid}/availability",
+                GetInventoryAvailability
+            );
         }
 
         private static async Task<IResult> ReserveSeat(
@@ -30,7 +34,8 @@ namespace TicketSalesPlatform.Inventory.Api.Endpoints
 
             try
             {
-                seat.Reserve(request.UserId);
+                seat.Reserve(request.UserId, request.OrderId);
+
                 await db.SaveChangesAsync();
 
                 foreach (var domainEvent in seat.GetDomainEvents())
@@ -94,19 +99,54 @@ namespace TicketSalesPlatform.Inventory.Api.Endpoints
         // Quick helper to seed data for testing
         private static async Task<IResult> InitData(InventoryDbContext db)
         {
-            if (!db.Seats.Any())
+            if (await db.Seats.AnyAsync())
             {
-                var eventId = Guid.NewGuid();
-                db.Seats.Add(new Seat("A1", eventId));
-                db.Seats.Add(new Seat("A2", eventId));
-                await db.SaveChangesAsync();
-                return Results.Ok(new { Message = "Seeded 2 seats", EventId = eventId });
+                return Results.Ok(new { Message = "Data already exists. Skip seeding." });
             }
-            return Results.Ok(new { Message = "Data already exists" });
+
+            var eventId = Guid.NewGuid();
+
+            var vipTicketTypeId = Guid.NewGuid();
+            var standardTicketTypeId = Guid.NewGuid();
+
+            var seats = new List<Seat>
+            {
+                new("A1", eventId, vipTicketTypeId),
+                new("A2", eventId, vipTicketTypeId),
+                new("B1", eventId, standardTicketTypeId),
+                new("B2", eventId, standardTicketTypeId),
+                new("B3", eventId, standardTicketTypeId),
+            };
+
+            db.Seats.AddRange(seats);
+            await db.SaveChangesAsync();
+
+            return Results.Ok(
+                new
+                {
+                    Message = "Seeded successfully!",
+                    EventId = eventId,
+                    VipTicketTypeId = vipTicketTypeId,
+                    StandardTicketTypeId = standardTicketTypeId,
+                    TotalSeats = seats.Count,
+                }
+            );
+        }
+
+        public static async Task<IResult> GetInventoryAvailability(
+            Guid ticketTypeId,
+            InventoryDbContext db
+        )
+        {
+            var count = await db.Seats.CountAsync(s =>
+                s.TicketTypeId == ticketTypeId && s.Status == SeatStatus.Available
+            );
+
+            return Results.Ok(new { TicketTypeId = ticketTypeId, AvailableQuantity = count });
         }
     }
 
-    public record ReserveSeatRequest(Guid SeatId, Guid UserId);
+    public record ReserveSeatRequest(Guid SeatId, Guid UserId, Guid OrderId);
 
     public record ReleaseSeatRequest(Guid SeatId, Guid UserId);
 }
