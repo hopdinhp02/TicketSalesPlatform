@@ -51,6 +51,14 @@ namespace TicketSalesPlatform.Payments.Api.Consumers
                     payment.Id
                 );
             }
+            catch (DbUpdateException)
+            {
+                // RACE CONDITION
+                _logger.LogInformation(
+                    "Payment already created by API for Order {OrderId}. Consumer skipping.",
+                    message.OrderId
+                );
+            }
             catch (Exception ex)
             {
                 _logger.LogError(

@@ -35,6 +35,12 @@ namespace TicketSalesPlatform.Payments.Api.Endpoints
                 {
                     return Results.BadRequest(new { Error = ex.Message });
                 }
+                catch (DbUpdateException)
+                {
+                    // RACE CONDITION
+                    db.ChangeTracker.Clear();
+                    payment = await db.Payments.FirstAsync(p => p.OrderId == request.OrderId);
+                }
             }
 
             if (payment.Status == PaymentStatus.Completed)

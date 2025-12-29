@@ -15,6 +15,7 @@ namespace TicketSalesPlatform.Payments.Api.Data
             base.OnModelCreating(modelBuilder);
 
             modelBuilder.Entity<Payment>().Property(p => p.Version).IsRowVersion();
+            modelBuilder.Entity<Payment>().HasIndex(p => p.OrderId).IsUnique();
         }
     }
 }
