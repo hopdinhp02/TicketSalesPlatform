@@ -94,5 +94,29 @@ namespace TicketSalesPlatform.Orders.Domain.Aggregates
 
             AddDomainEvent(new OrderCancelled(Id, reason));
         }
+
+        public void MarkAsRefunded()
+        {
+            if (Status != OrderStatus.Paid)
+            {
+                if (Status == OrderStatus.Refunded)
+                    return;
+
+                if (Status == OrderStatus.Cancelled)
+                {
+                    // Log warning
+                }
+                else
+                {
+                    throw new InvalidOperationException(
+                        $"Cannot refund Order {Id} because status is {Status}"
+                    );
+                }
+            }
+
+            Status = OrderStatus.Refunded;
+
+            AddDomainEvent(new OrderRefunded(Id));
+        }
     }
 }

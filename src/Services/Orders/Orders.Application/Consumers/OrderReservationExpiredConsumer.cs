@@ -30,16 +30,27 @@ namespace TicketSalesPlatform.Orders.Application.Consumers
             var orderId = context.Message.OrderId;
             var order = await _repository.GetByIdAsync(orderId);
 
-            if (order == null)
+            if (order is null)
                 return;
 
+            // IDEMPOTENCY CHECK
+            if (order.Status == OrderStatus.Cancelled)
+            {
+                _logger.LogInformation(
+                    "Order {OrderId} is already Cancelled. Skipping expiration message.",
+                    orderId
+                );
+                return;
+            }
+
+            // 2. RACE CONDITION: PAID vs EXPIRED
             if (order.Status == OrderStatus.Paid)
             {
                 _logger.LogWarning(
-                    "Race Condition: Order {OrderId} is PAID but Inventory expired reservation.",
+                    "Race Condition Ignore: Order {OrderId} is PAID but received Expiration message. "
+                        + "Assuming Inventory Service handles the Seat Re-claim or Refund triggering.",
                     orderId
                 );
-                // TODO: Refund
                 return;
             }
 
@@ -53,7 +64,7 @@ namespace TicketSalesPlatform.Orders.Application.Consumers
             );
 
             _logger.LogInformation(
-                "Sent OrderCancelledIntegrationEvent for Order {OrderId}",
+                "Order {OrderId} cancelled due to timeout. Notification sent to Payment Service.",
                 orderId
             );
         }

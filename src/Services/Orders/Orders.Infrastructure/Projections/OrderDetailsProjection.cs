@@ -35,12 +35,20 @@ namespace TicketSalesPlatform.Orders.Infrastructure.Projections
         public void Apply(OrderPaid e, OrderDetails current)
         {
             current.Status = OrderStatus.Paid.ToString();
+            current.LastUpdated = e.OccurredOn;
         }
 
         public void Apply(OrderCancelled e, OrderDetails current)
         {
             current.Status = OrderStatus.Cancelled.ToString();
             current.CancellationReason = e.Reason;
+            current.LastUpdated = e.OccurredOn;
+        }
+
+        public void Apply(OrderRefunded e, OrderDetails current)
+        {
+            current.Status = OrderStatus.Refunded.ToString();
+            current.LastUpdated = e.OccurredOn;
         }
     }
 }
