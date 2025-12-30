@@ -30,6 +30,7 @@ namespace TicketSalesPlatform.Payments.Api.Endpoints
                 {
                     payment = new Payment(request.OrderId, request.UserId, request.Amount);
                     db.Payments.Add(payment);
+                    await db.SaveChangesAsync();
                 }
                 catch (ArgumentException ex)
                 {
@@ -48,30 +49,100 @@ namespace TicketSalesPlatform.Payments.Api.Endpoints
                 return Results.BadRequest(new { Error = "Order is already paid." });
             }
 
+            if (
+                payment.Status == PaymentStatus.Cancelled
+                || payment.Status == PaymentStatus.Refunded
+            )
+            {
+                return Results.BadRequest(
+                    new { Error = "Order has been cancelled or refunded. Payment denied." }
+                );
+            }
+
             // Mocking external payment gateway
             bool paymentGatewaySuccess = true;
 
             if (paymentGatewaySuccess)
             {
-                payment.Complete();
+                try
+                {
+                    payment.Complete();
+                }
+                catch (InvalidOperationException ex)
+                {
+                    // Refund
+                    // await _gateway.RefundAsync(payment.TransactionId);
+
+                    // _logger.LogWarning("Refunded payment because Order logic rejected completion. Error: {Error}", ex.Message);
+
+                    return Results.BadRequest(
+                        new
+                        {
+                            Error = "Payment processed but Order was invalid. Refund initiated.",
+                            Detail = ex.Message,
+                        }
+                    );
+                }
             }
             else
             {
-                payment.Fail("Payment gateway declined transaction.");
+                try
+                {
+                    payment.Fail("Payment gateway declined transaction.");
+                }
+                catch (InvalidOperationException ex)
+                {
+                    return Results.BadRequest(new { Error = ex.Message });
+                }
             }
 
-            await db.SaveChangesAsync();
+            try
+            {
+                await db.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                await db.Entry(payment).ReloadAsync();
+
+                if (
+                    payment.Status == PaymentStatus.Cancelled
+                    || payment.Status == PaymentStatus.Refunded
+                )
+                {
+                    if (paymentGatewaySuccess)
+                    {
+                        // Refund
+                        // await _gateway.RefundAsync(payment.TransactionId);
+
+                        return Results.BadRequest(
+                            new { Error = "Order cancelled concurrently. Refund initiated." }
+                        );
+                    }
+
+                    return Results.BadRequest(
+                        new { Error = "Payment failed. Order was cancelled." }
+                    );
+                }
+
+                return Results.Conflict(
+                    new { Error = "Data changed by another process. Please try again." }
+                );
+            }
 
             foreach (var domainEvent in payment.GetDomainEvents())
             {
                 await publisher.Publish(domainEvent);
             }
             payment.ClearDomainEvents();
-            return payment.Status == PaymentStatus.Completed
-                ? Results.Ok(new { Message = "Payment successful", PaymentId = payment.Id })
-                : Results.BadRequest(
-                    new { Message = "Payment failed", Reason = payment.FailureReason }
-                );
+
+            if (payment.Status == PaymentStatus.Completed)
+            {
+                return Results.Ok(new { Message = "Payment successful", PaymentId = payment.Id });
+            }
+
+            return Results.BadRequest(
+                new { Message = "Payment failed", Reason = payment.FailureReason }
+            );
         }
 
         private static async Task<IResult> RefundPayment(
@@ -85,9 +156,15 @@ namespace TicketSalesPlatform.Payments.Api.Endpoints
             if (payment is null)
                 return Results.NotFound();
 
+            if (payment.Status == PaymentStatus.Refunded)
+                return Results.Ok(new { Message = "Already refunded." });
+
             try
             {
-                payment.Refund();
+                // var gatewayResult = await gateway.RefundAsync(payment.TransactionId, request.Amount);
+                // if (!gatewayResult.Success) throw new Exception(gatewayResult.Error);
+
+                payment.Refund(request.reason);
 
                 await db.SaveChangesAsync();
 
@@ -103,10 +180,11 @@ namespace TicketSalesPlatform.Payments.Api.Endpoints
             {
                 return Results.BadRequest(new { Error = ex.Message });
             }
+            // catch (GatewayException ex)
         }
     }
 
     public record CreatePaymentRequest(Guid OrderId, Guid UserId, decimal Amount);
 
-    public record RefundRequest(Guid PaymentId);
+    public record RefundRequest(Guid PaymentId, string reason);
 }

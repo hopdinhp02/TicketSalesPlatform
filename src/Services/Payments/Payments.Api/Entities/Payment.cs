@@ -36,10 +36,14 @@ namespace TicketSalesPlatform.Payments.Api.Entities
 
         public void Complete()
         {
+            if (Status == PaymentStatus.Completed)
+                return;
+
             if (Status != PaymentStatus.Pending)
             {
-                // Idempotency check or invalid state
-                return;
+                throw new InvalidOperationException(
+                    $"Cannot complete payment. Current status: {Status}"
+                );
             }
 
             Status = PaymentStatus.Completed;
@@ -49,9 +53,18 @@ namespace TicketSalesPlatform.Payments.Api.Entities
 
         public void Fail(string reason)
         {
-            if (Status == PaymentStatus.Completed)
+            if (Status == PaymentStatus.Failed)
+                return;
+
+            if (
+                Status == PaymentStatus.Completed
+                || Status == PaymentStatus.Refunded
+                || Status == PaymentStatus.Cancelled
+            )
             {
-                throw new InvalidOperationException("Cannot fail a completed payment.");
+                throw new InvalidOperationException(
+                    $"Cannot fail a payment that is already {Status}."
+                );
             }
 
             Status = PaymentStatus.Failed;
@@ -60,14 +73,26 @@ namespace TicketSalesPlatform.Payments.Api.Entities
             AddDomainEvent(new PaymentFailed(Id, OrderId, reason));
         }
 
-        public void Refund()
+        public void Refund(string reason)
         {
             if (Status != PaymentStatus.Completed)
             {
-                throw new InvalidOperationException("Only completed payments can be refunded.");
+                if (Status == PaymentStatus.Pending)
+                {
+                    Cancel($"Cancelled instead of Refunded. Reason: {reason}");
+                    return;
+                }
+
+                if (Status == PaymentStatus.Refunded)
+                    return;
+
+                throw new InvalidOperationException(
+                    $"Cannot refund a payment with status {Status}"
+                );
             }
 
             Status = PaymentStatus.Refunded;
+            FailureReason = reason;
 
             AddDomainEvent(new PaymentRefunded(Id, OrderId));
         }

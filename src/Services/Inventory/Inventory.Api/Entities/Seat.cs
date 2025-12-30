@@ -53,7 +53,8 @@ namespace TicketSalesPlatform.Inventory.Api.Entities
 
             Status = SeatStatus.Available;
             UserId = null;
-            OrderId = null;
+            // Keep OrderId for record-keeping
+            //OrderId = null;
             ReservationExpiresAt = null;
 
             // Optionally: AddDomainEvent(new SeatReleased(Id));
@@ -81,6 +82,27 @@ namespace TicketSalesPlatform.Inventory.Api.Entities
             ReservationExpiresAt = null;
 
             // AddDomainEvent(new SeatExpired(...));
+        }
+
+        public void Refund()
+        {
+            if (Status != SeatStatus.Sold && Status != SeatStatus.Reserved)
+            {
+                if (Status == SeatStatus.Available)
+                    return;
+
+                throw new InvalidOperationException(
+                    $"Cannot refund seat {Id} because status is {Status}"
+                );
+            }
+
+            Status = SeatStatus.Available;
+            ReservationExpiresAt = null;
+            UserId = null;
+            // Audit Log
+            // OrderId = null;
+
+            // AddDomainEvent(new SeatRefunded(Id));
         }
     }
 
