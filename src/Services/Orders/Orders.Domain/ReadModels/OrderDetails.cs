@@ -11,13 +11,12 @@
         public string? CancellationReason { get; set; }
         public DateTime LastUpdated { get; set; }
     }
-}
 
-public class OrderItemDetails
-{
-    public Guid TicketTypeId { get; set; }
-    public string EventName { get; set; } = string.Empty;
-    public decimal UnitPrice { get; set; }
-    public int Quantity { get; set; }
-}
+    public class OrderItemDetails
+    {
+        public Guid TicketTypeId { get; set; }
+        public string EventName { get; set; } = string.Empty;
+        public decimal UnitPrice { get; set; }
+        public int Quantity { get; set; }
+    }
 }
