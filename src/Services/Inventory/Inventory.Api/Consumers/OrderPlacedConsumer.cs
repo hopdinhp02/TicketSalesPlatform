@@ -51,11 +51,14 @@ public class OrderPlacedConsumer : IConsumer<OrderPlacedIntegrationEvent>
                     seatsToReserve.Count
                 );
 
-                // Throwing exception triggers MassTransit Retry logic.
-                // Eventually, it will move to _error queue if retries fail.
-                throw new InvalidOperationException(
-                    $"Not enough seats for TicketType {item.TicketTypeId}"
+                await context.Publish(
+                    new OrderReservationFailedIntegrationEvent(
+                        message.OrderId,
+                        $"Out of stock for TicketType {item.TicketTypeId}"
+                    )
                 );
+
+                return;
             }
 
             foreach (var seat in seatsToReserve)
