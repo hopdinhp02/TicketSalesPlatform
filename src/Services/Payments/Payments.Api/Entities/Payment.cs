@@ -1,5 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
-using SharedKernel;
+﻿using SharedKernel;
+using System.ComponentModel.DataAnnotations;
 using TicketSalesPlatform.Payments.Api.Entities.DomainEvents;
 
 namespace TicketSalesPlatform.Payments.Api.Entities
@@ -109,7 +109,7 @@ namespace TicketSalesPlatform.Payments.Api.Entities
                 Status = PaymentStatus.Cancelled;
                 FailureReason = reason;
 
-                // AddDomainEvent(new PaymentCancelled(Id));
+                AddDomainEvent(new PaymentCancelled(Id, OrderId, reason));
             }
         }
     }

@@ -15,7 +15,7 @@ namespace TicketSalesPlatform.Orders.Infrastructure.Projections
                 .Items.Select(i => new OrderItemDetails
                 {
                     TicketTypeId = i.TicketTypeId,
-                    EventName = i.EventName,
+                    Name = i.Name,
                     UnitPrice = i.UnitPrice,
                     Quantity = i.Quantity,
                 })

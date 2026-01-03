@@ -19,13 +19,21 @@ namespace TicketSalesPlatform.Events.Infrastructure.Projections
             {
                 Id = e.EventId,
                 Title = e.Title,
+                Description = e.Description,
                 Date = e.Date,
                 IsPublished = false,
             };
 
-        // This method is called for subsequent events in the stream.
-        // It applies changes to the existing read model document.
-        // NOTE: add an Apply method for an EventPublished event here.
-        // public void Apply(EventPublished e, EventSummary current) => current.IsPublished = true;
+        public void Apply(EventPublished e, EventSummary current) => current.IsPublished = true;
+
+        public void Apply(TicketTypeAdded e, EventSummary current)
+        {
+            current.TotalTickets += e.Quantity;
+
+            if (e.Price < current.MinPrice)
+                current.MinPrice = e.Price;
+            if (e.Price > current.MaxPrice)
+                current.MaxPrice = e.Price;
+        }
     }
 }

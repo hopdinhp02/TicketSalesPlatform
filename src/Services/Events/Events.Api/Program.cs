@@ -1,4 +1,6 @@
+using JasperFx.Events.Projections;
 using Marten;
+using MassTransit;
 using MediatR;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
@@ -6,7 +8,8 @@ using Serilog;
 using TicketSalesPlatform.Events.Application.Abstractions;
 using TicketSalesPlatform.Events.Application.CreateEvent;
 using TicketSalesPlatform.Events.Application.GetEventById;
-using TicketSalesPlatform.Events.Domain.Aggregates;
+using TicketSalesPlatform.Events.Application.GetTicketTypeById;
+using TicketSalesPlatform.Events.Application.PublishEvent;
 using TicketSalesPlatform.Events.Infrastructure.Persistence;
 using TicketSalesPlatform.Events.Infrastructure.Projections;
 
@@ -47,14 +50,42 @@ builder
     {
         var connectionString = builder.Configuration.GetConnectionString("Database");
         options.Connection(connectionString!);
-        options.Projections.Add<EventSummaryProjection>(
-            JasperFx.Events.Projections.ProjectionLifecycle.Async
-        );
+        options.Projections.Add<EventSummaryProjection>(ProjectionLifecycle.Async);
+        options.Projections.Add<EventDetailProjection>(ProjectionLifecycle.Async);
     })
     .UseLightweightSessions()
     .AddAsyncDaemon(JasperFx.Events.Daemon.DaemonMode.Solo); // Starts the background projection processor
 
-builder.Services.AddScoped<IRepository<Event>, EventRepository>();
+builder.Services.AddMassTransit(x =>
+{
+    x.SetEndpointNameFormatter(new KebabCaseEndpointNameFormatter("event", false));
+
+    x.AddConsumers(TicketSalesPlatform.Events.Application.AssemblyReference.Assembly);
+    x.UsingRabbitMq(
+        (context, cfg) =>
+        {
+            var host = builder.Configuration["MessageBroker:Host"];
+            cfg.Host(
+                host,
+                "/",
+                h =>
+                {
+                    h.Username("guest");
+                    h.Password("guest");
+                }
+            );
+
+            cfg.UseMessageRetry(r => r.Interval(3, TimeSpan.FromSeconds(5)));
+
+            cfg.ConfigureEndpoints(context);
+        }
+    );
+});
+
+builder.Services.AddScoped<
+    IRepository<TicketSalesPlatform.Events.Domain.Aggregates.Event>,
+    EventRepository
+>();
 builder.Services.AddScoped<
     TicketSalesPlatform.Events.Application.Abstractions.IUnitOfWork,
     UnitOfWork
@@ -113,6 +144,43 @@ app.MapGet(
         }
     )
     .WithName("GetEventById")
+    .WithTags("Events")
+    .RequireAuthorization();
+
+app.MapGet(
+        "/api/events/ticket-types/{ticketTypeId:guid}",
+        async (Guid ticketTypeId, IMediator mediator) =>
+        {
+            var query = new GetTicketTypeByIdQuery(ticketTypeId);
+            var result = await mediator.Send(query);
+
+            return result is not null ? Results.Ok(result) : Results.NotFound();
+        }
+    )
+    .WithName("GetTicketTypeById")
+    .WithTags("TicketTypes")
+    .RequireAuthorization();
+
+app.MapPost(
+        "/api/events/{id:guid}/publish",
+        async (Guid id, ISender sender) =>
+        {
+            try
+            {
+                await sender.Send(new PublishEventCommand(id));
+                return Results.Ok(new { Message = "Event published successfully." });
+            }
+            catch (KeyNotFoundException)
+            {
+                return Results.NotFound();
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Results.BadRequest(new { Error = ex.Message });
+            }
+        }
+    )
+    .WithName("PublishEvent")
     .WithTags("Events")
     .RequireAuthorization();
 

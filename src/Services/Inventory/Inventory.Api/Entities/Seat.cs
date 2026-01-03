@@ -1,5 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
-using SharedKernel;
+﻿using SharedKernel;
+using System.ComponentModel.DataAnnotations;
 using TicketSalesPlatform.Inventory.Api.Entities.DomainEvents;
 
 namespace TicketSalesPlatform.Inventory.Api.Entities
@@ -103,6 +103,21 @@ namespace TicketSalesPlatform.Inventory.Api.Entities
             // OrderId = null;
 
             // AddDomainEvent(new SeatRefunded(Id));
+        }
+
+        public void Cancel()
+        {
+            if (Status == SeatStatus.Available)
+            {
+                return;
+            }
+
+            Status = SeatStatus.Available;
+            UserId = null;
+            ReservationExpiresAt = null;
+            OrderId = null;
+
+            // AddDomainEvent(new SeatCancelled(Id));
         }
     }
 

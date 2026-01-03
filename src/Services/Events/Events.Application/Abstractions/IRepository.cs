@@ -7,5 +7,6 @@ namespace TicketSalesPlatform.Events.Application.Abstractions
     {
         Task<T?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
         void Add(T entity);
+        void Update(T entity);
     }
 }
