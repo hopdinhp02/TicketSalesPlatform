@@ -1,16 +1,17 @@
 services:
   # Infrastructure
-  postgres:
+  event-db:
     image: postgres:15
+    container_name: event-postgres
     ports:
-      - "5432:5432"
+      - "5432:5432" 
     environment:
       POSTGRES_USER: user
       POSTGRES_PASSWORD: password
-      POSTGRES_DB: ticketsalesplatformdb
+      POSTGRES_DB: event_db
     volumes:
-      - postgres_data:/var/lib/postgresql/data/
- 
+      - event_data:/var/lib/postgresql/data/
+
   inventory-db:
     image: postgres:15
     container_name: inventory-postgres
@@ -34,7 +35,19 @@ services:
       POSTGRES_DB: payment_db
     volumes:
       - payment_data:/var/lib/postgresql/data/
- 
+
+  order-db:
+    image: postgres:15
+    container_name: order-postgres
+    ports:
+      - "5435:5432" 
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: order_db
+    volumes:
+      - order_data:/var/lib/postgresql/data/
+
   rabbitmq:
     image: rabbitmq:3-management
     ports:
@@ -68,11 +81,13 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:8080
-      - ConnectionStrings__Database=Host=postgres;Port=5432;Database=ticketsalesplatformdb;Username=user;Password=password
+      - ConnectionStrings__Database=Host=event-db;Port=5432;Database=event_db;Username=user;Password=password
       - Authentication__Authority=http://ticketsalesplatform.identity.api:8080
+      - MessageBroker__Host=rabbitmq
     depends_on:
-      - postgres
+      - event-db
       - ticketsalesplatform.identity.api
+      - rabbitmq
 
   ticketsalesplatform.orders.api:
     image: ${DOCKER_REGISTRY-}ticketsalesplatformordersapi
@@ -84,12 +99,13 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:8080
-      - ConnectionStrings__Database=Host=postgres;Port=5432;Database=ticketsalesplatformdb;Username=user;Password=password
+      - ConnectionStrings__Database=Host=order-db;Port=5432;Database=order_db;Username=user;Password=password
       - Authentication__Authority=http://ticketsalesplatform.identity.api:8080
       - MessageBroker__Host=rabbitmq
       - Services__EventsApiUrl=http://ticketsalesplatform.events.api:8080
+      - Services__InventoryApiUrl=http://host.docker.internal:5109
     depends_on:
-      - postgres
+      - order-db
       - rabbitmq
       - ticketsalesplatform.identity.api
 
@@ -126,3 +142,5 @@ volumes:
   identity_keys:
   inventory_data:
   payment_data:  
+  event_data:
+  order_data:

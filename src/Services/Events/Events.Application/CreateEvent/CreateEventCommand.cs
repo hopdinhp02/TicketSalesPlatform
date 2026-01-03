@@ -2,6 +2,12 @@
 
 namespace TicketSalesPlatform.Events.Application.CreateEvent
 {
-    public sealed record CreateEventCommand(string Title, string Description, DateTime Date)
-        : IRequest<Guid>;
+    public record CreateEventCommand(
+        string Title,
+        string Description,
+        DateTime Date,
+        List<TicketTypeInput> TicketTypes
+    ) : IRequest<Guid>;
+
+    public record TicketTypeInput(string Name, decimal Price, int Quantity);
 }

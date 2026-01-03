@@ -20,7 +20,7 @@ namespace TicketSalesPlatform.Orders.Infrastructure.Clients
             try
             {
                 var response = await _httpClient.GetFromJsonAsync<TicketTypeDto>(
-                    $"api/ticket-types/{ticketTypeId}",
+                    $"api/events/ticket-types/{ticketTypeId}",
                     cancellationToken
                 );
                 return response;

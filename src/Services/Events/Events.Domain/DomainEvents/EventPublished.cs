@@ -2,8 +2,7 @@
 
 namespace TicketSalesPlatform.Events.Domain.DomainEvents
 {
-    public sealed record EventCreated(Guid EventId, string Title, string Description, DateTime Date)
-        : IDomainEvent
+    public record EventPublished(Guid EventId) : IDomainEvent
     {
         public Guid Id { get; } = Guid.NewGuid();
         public DateTime OccurredOn { get; } = DateTime.UtcNow;

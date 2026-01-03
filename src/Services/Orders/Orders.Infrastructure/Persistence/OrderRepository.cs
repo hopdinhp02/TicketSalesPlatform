@@ -12,8 +12,8 @@ namespace TicketSalesPlatform.Orders.Infrastructure.Persistence
 
         public void Add(Order entity)
         {
-            // For a new aggregate, we start a new event stream.
             _session.Events.StartStream(entity.Id, entity.GetDomainEvents());
+            entity.ClearDomainEvents();
         }
 
         public async Task<Order?> GetByIdAsync(
@@ -21,7 +21,6 @@ namespace TicketSalesPlatform.Orders.Infrastructure.Persistence
             CancellationToken cancellationToken = default
         )
         {
-            // Marten will fetch all events for the given ID and replay them to reconstruct the aggregate.
             return await _session.Events.AggregateStreamAsync<Order>(id, token: cancellationToken);
         }
 

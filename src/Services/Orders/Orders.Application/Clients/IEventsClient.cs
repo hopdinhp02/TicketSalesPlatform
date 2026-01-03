@@ -8,11 +8,5 @@
         );
     }
 
-    public record TicketTypeDto(
-        Guid Id,
-        Guid EventId,
-        string EventName,
-        string Name,
-        decimal Price
-    );
+    public record TicketTypeDto(Guid Id, Guid EventId, string Name, decimal Price);
 }

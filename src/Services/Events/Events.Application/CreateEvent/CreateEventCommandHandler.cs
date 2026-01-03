@@ -1,6 +1,6 @@
-﻿using TicketSalesPlatform.Events.Application.Abstractions;
+﻿using MediatR;
+using TicketSalesPlatform.Events.Application.Abstractions;
 using TicketSalesPlatform.Events.Domain.Aggregates;
-using MediatR;
 
 namespace TicketSalesPlatform.Events.Application.CreateEvent
 {
@@ -21,7 +21,13 @@ namespace TicketSalesPlatform.Events.Application.CreateEvent
         )
         {
             var newEvent = Event.Create(request.Title, request.Description, request.Date);
-
+            if (request.TicketTypes != null && request.TicketTypes.Any())
+            {
+                foreach (var tt in request.TicketTypes)
+                {
+                    newEvent.AddTicketType(tt.Name, tt.Price, tt.Quantity);
+                }
+            }
             _eventRepository.Add(newEvent);
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);

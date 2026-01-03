@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using TicketSalesPlatform.Orders.Application.Abstractions;
 using TicketSalesPlatform.Orders.Application.Clients;
 using TicketSalesPlatform.Orders.Domain.Aggregates;
+using TicketSalesPlatform.Orders.Domain.ValueObjects;
 
 namespace TicketSalesPlatform.Orders.Application.PlaceOrder
 {
@@ -10,7 +11,6 @@ namespace TicketSalesPlatform.Orders.Application.PlaceOrder
     {
         private readonly IRepository<Order> _orderRepository;
         private readonly IUnitOfWork _unitOfWork;
-        private readonly IPublisher _publisher;
         private readonly IEventsClient _eventsClient;
         private readonly IInventoryClient _inventoryClient;
         private readonly ILogger<PlaceOrderCommandHandler> _logger;
@@ -18,7 +18,6 @@ namespace TicketSalesPlatform.Orders.Application.PlaceOrder
         public PlaceOrderCommandHandler(
             IRepository<Order> orderRepository,
             IUnitOfWork unitOfWork,
-            IPublisher publisher,
             IEventsClient eventsClient,
             IInventoryClient inventoryClient,
             ILogger<PlaceOrderCommandHandler> logger
@@ -26,7 +25,6 @@ namespace TicketSalesPlatform.Orders.Application.PlaceOrder
         {
             _orderRepository = orderRepository;
             _unitOfWork = unitOfWork;
-            _publisher = publisher;
             _eventsClient = eventsClient;
             _inventoryClient = inventoryClient;
             _logger = logger;
@@ -37,7 +35,7 @@ namespace TicketSalesPlatform.Orders.Application.PlaceOrder
             CancellationToken cancellationToken
         )
         {
-            var orderItemsEntity = new List<OrderItem>();
+            var orderItemsEntity = new List<InitialOrderItem>();
 
             foreach (var itemDto in request.Items)
             {
@@ -67,29 +65,21 @@ namespace TicketSalesPlatform.Orders.Application.PlaceOrder
                 }
 
                 orderItemsEntity.Add(
-                    new OrderItem(
-                        Guid.Empty,
+                    new InitialOrderItem(
                         ticketInfo.Id,
-                        ticketInfo.EventName,
+                        ticketInfo.Name,
                         ticketInfo.Price,
                         itemDto.Quantity
                     )
                 );
             }
 
-            var order = Order.Create(request.CustomerId, orderItemsEntity);
+            var order = Order.Initialize(request.CustomerId, orderItemsEntity);
 
             _logger.LogInformation("Creating new order {@Order}", order);
 
             _orderRepository.Add(order);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
-
-            foreach (var domainEvent in order.GetDomainEvents())
-            {
-                await _publisher.Publish(domainEvent, cancellationToken);
-            }
-            order.ClearDomainEvents();
-
             return order.Id;
         }
     }

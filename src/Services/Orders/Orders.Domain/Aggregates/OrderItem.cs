@@ -1,5 +1,4 @@
 ﻿using SharedKernel;
-using NewId = MassTransit.NewId;
 
 namespace TicketSalesPlatform.Orders.Domain.Aggregates
 {
@@ -11,21 +10,19 @@ namespace TicketSalesPlatform.Orders.Domain.Aggregates
         public decimal UnitPrice { get; private set; }
         public int Quantity { get; private set; }
 
+        private OrderItem()
+            : base(Guid.Empty) { }
+
         public OrderItem(
+            Guid id,
             Guid orderId,
             Guid ticketTypeId,
             string eventName,
             decimal unitPrice,
             int quantity
         )
-            : base(NewId.NextGuid())
+            : base(id)
         {
-            // Business rule validations can go here
-            if (quantity <= 0)
-                throw new ArgumentException("Quantity must be positive.", nameof(quantity));
-            if (unitPrice < 0)
-                throw new ArgumentException("Unit price cannot be negative.", nameof(unitPrice));
-
             OrderId = orderId;
             TicketTypeId = ticketTypeId;
             EventName = eventName;

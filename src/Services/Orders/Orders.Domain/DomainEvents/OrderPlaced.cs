@@ -9,9 +9,10 @@ namespace TicketSalesPlatform.Orders.Domain.DomainEvents
         List<OrderPlaced.OrderItemData> Items
     ) : IDomainEvent
     {
-        public sealed record OrderItemData(
+        public record OrderItemData(
+            Guid ItemId,
             Guid TicketTypeId,
-            string EventName,
+            string Name,
             decimal UnitPrice,
             int Quantity
         );

@@ -1,6 +1,7 @@
 ﻿using SharedKernel;
 using TicketSalesPlatform.Orders.Domain.DomainEvents;
 using TicketSalesPlatform.Orders.Domain.Enums;
+using TicketSalesPlatform.Orders.Domain.ValueObjects;
 using NewId = MassTransit.NewId;
 
 namespace TicketSalesPlatform.Orders.Domain.Aggregates
@@ -14,109 +15,110 @@ namespace TicketSalesPlatform.Orders.Domain.Aggregates
         public decimal TotalPrice => _orderItems.Sum(item => item.UnitPrice * item.Quantity);
         public IReadOnlyCollection<OrderItem> OrderItems => _orderItems.AsReadOnly();
 
-        private Order(Guid id, Guid customerId)
-            : base(id)
-        {
-            CustomerId = customerId;
-        }
+        private Order()
+            : base(Guid.Empty) { }
 
-        /// <summary>
-        /// Factory method for creating a new Order from a cart/basket.
-        /// The order is created directly in a 'Placed' state.
-        /// </summary>
-        public static Order Create(Guid customerId, List<OrderItem> items)
+        public static Order Initialize(Guid customerId, List<InitialOrderItem> items)
         {
-            // Invariant: Cannot create an order with no items.
             if (items is null || !items.Any())
-            {
                 throw new InvalidOperationException("Cannot create an order with no items.");
-            }
 
-            var order = new Order(NewId.NextGuid(), customerId);
+            var orderId = NewId.NextGuid();
 
-            foreach (var item in items)
-            {
-                order._orderItems.Add(
-                    new OrderItem(
-                        order.Id,
-                        item.TicketTypeId,
-                        item.EventName,
-                        item.UnitPrice,
-                        item.Quantity
-                    )
-                );
-            }
-
-            order.Status = OrderStatus.Placed;
-
-            var eventItems = order
-                .OrderItems.Select(oi => new OrderPlaced.OrderItemData(
-                    oi.TicketTypeId,
-                    oi.EventName,
-                    oi.UnitPrice,
-                    oi.Quantity
+            var eventItems = items
+                .Select(i => new OrderPlaced.OrderItemData(
+                    NewId.NextGuid(),
+                    i.TicketTypeId,
+                    i.Name,
+                    i.UnitPrice,
+                    i.Quantity
                 ))
                 .ToList();
 
-            order.AddDomainEvent(
-                new OrderPlaced(order.Id, order.CustomerId, order.TotalPrice, eventItems)
-            );
+            var totalPrice = eventItems.Sum(x => x.UnitPrice * x.Quantity);
+            var @event = new OrderPlaced(orderId, customerId, totalPrice, eventItems);
+
+            var order = new Order();
+            order.AddDomainEvent(@event);
+            order.Apply(@event);
 
             return order;
         }
 
         public void MarkAsPaid()
         {
-            // Idempotency
             if (Status == OrderStatus.Paid)
                 return;
-
             if (Status == OrderStatus.Cancelled)
                 throw new InvalidOperationException("Cannot pay for a cancelled order.");
 
-            Status = OrderStatus.Paid;
-
-            AddDomainEvent(new OrderPaid(Id));
+            var @event = new OrderPaid(Id);
+            AddDomainEvent(@event);
+            Apply(@event);
         }
 
         public void MarkAsCancelled(string reason)
         {
             if (Status == OrderStatus.Paid)
-            {
-                // throw new InvalidOperationException("Cannot cancel a paid order.");
-                return;
-            }
-
+                throw new InvalidOperationException("Cannot cancel a paid order.");
             if (Status == OrderStatus.Cancelled)
                 return;
 
-            Status = OrderStatus.Cancelled;
-
-            AddDomainEvent(new OrderCancelled(Id, reason));
+            var @event = new OrderCancelled(Id, reason);
+            AddDomainEvent(@event);
+            Apply(@event);
         }
 
         public void MarkAsRefunded()
         {
+            if (Status == OrderStatus.Refunded)
+                return;
+
             if (Status != OrderStatus.Paid)
             {
-                if (Status == OrderStatus.Refunded)
-                    return;
-
-                if (Status == OrderStatus.Cancelled)
-                {
-                    // Log warning
-                }
-                else
-                {
-                    throw new InvalidOperationException(
-                        $"Cannot refund Order {Id} because status is {Status}"
-                    );
-                }
+                throw new InvalidOperationException(
+                    $"Cannot refund Order {Id} because status is {Status}. Only Paid orders can be refunded."
+                );
             }
 
-            Status = OrderStatus.Refunded;
+            var @event = new OrderRefunded(Id);
+            AddDomainEvent(@event);
+            Apply(@event);
+        }
 
-            AddDomainEvent(new OrderRefunded(Id));
+        private void Apply(OrderPlaced @event)
+        {
+            Id = @event.OrderId;
+            CustomerId = @event.CustomerId;
+            Status = OrderStatus.Placed;
+
+            _orderItems.AddRange(
+                @event
+                    .Items.Select(i => new OrderItem(
+                        i.ItemId,
+                        @event.OrderId,
+                        i.TicketTypeId,
+                        i.Name,
+                        i.UnitPrice,
+                        i.Quantity
+                    ))
+                    .ToList()
+            );
+        }
+
+        private void Apply(OrderPaid @event)
+        {
+            Status = OrderStatus.Paid;
+        }
+
+        private void Apply(OrderCancelled @event)
+        {
+            Status = OrderStatus.Cancelled;
+        }
+
+        private void Apply(OrderRefunded @event)
+        {
+            Status = OrderStatus.Refunded;
         }
     }
 }
