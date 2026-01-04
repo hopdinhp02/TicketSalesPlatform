@@ -2,6 +2,8 @@ using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using TicketSalesPlatform.Payments.Api.Data;
 using TicketSalesPlatform.Payments.Api.Endpoints;
+using TicketSalesPlatform.Payments.Api.Infrastructure.Authentication;
+using TicketSalesPlatform.Payments.Api.Infrastructure.Clients.Order;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -56,6 +58,17 @@ builder.Services.AddMassTransit(x =>
         }
     );
 });
+
+builder.Services.AddHttpContextAccessor();
+
+builder.Services.AddTransient<TokenPropagationHandler>();
+builder
+    .Services.AddHttpClient<IOrderClient, OrderClient>(client =>
+    {
+        client.BaseAddress = new Uri(builder.Configuration["Services:OrderApiUrl"]!);
+    })
+    .AddHttpMessageHandler<TokenPropagationHandler>();
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
