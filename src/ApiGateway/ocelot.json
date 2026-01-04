@@ -1,41 +1,90 @@
 {
   "Routes": [
-    // Route for the Events Microservice
+    // EVENTS SERVICE
     {
       "DownstreamPathTemplate": "/api/events/{everything}",
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
-          "Host": "TicketSalesPlatform.events.api",
+          "Host": "ticketsalesplatform.events.api",
           "Port": 8080
         }
       ],
       "UpstreamPathTemplate": "/gateway/events/{everything}",
-      "UpstreamHttpMethod": [ "GET", "POST" ],
+      "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ],
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer",
         "AllowedScopes": [ "events.api" ]
       }
     },
-    // Route for the Orders Microservice
+
+    // ORDERS SERVICE
     {
       "DownstreamPathTemplate": "/api/orders/{everything}",
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
-          "Host": "TicketSalesPlatform.orders.api",
+          "Host": "ticketsalesplatform.orders.api",
           "Port": 8080
         }
       ],
       "UpstreamPathTemplate": "/gateway/orders/{everything}",
-      "UpstreamHttpMethod": [ "GET", "POST" ],
+      "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ],
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer",
         "AllowedScopes": [ "orders.api" ]
       }
+    },
+
+    // INVENTORY SERVICE
+    {
+      "DownstreamPathTemplate": "/api/inventory/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "ticketsalesplatform.inventory.api",
+          "Port": 8080
+        }
+      ],
+      "UpstreamPathTemplate": "/gateway/inventory/{everything}",
+      "UpstreamHttpMethod": [ "GET" ]
+    },
+    {
+      "DownstreamPathTemplate": "/api/inventory/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "ticketsalesplatform.inventory.api",
+          "Port": 8080
+        }
+      ],
+      "UpstreamPathTemplate": "/gateway/inventory/{everything}",
+      "UpstreamHttpMethod": [ "POST", "PUT", "DELETE" ],
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer",
+        "AllowedScopes": [ "inventory.api" ]
+      }
+    },
+
+    // PAYMENT SERVICE
+    {
+      "DownstreamPathTemplate": "/api/payments/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "ticketsalesplatform.payment.api",
+          "Port": 8080
+        }
+      ],
+      "UpstreamPathTemplate": "/gateway/payments/{everything}",
+      "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ],
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer",
+        "AllowedScopes": [ "payments.api" ]
+      }
     }
   ],
   "GlobalConfiguration": {
-    "BaseUrl": "http://localhost:7000" // The public-facing URL of the gateway
+    "BaseUrl": "http://localhost:7000"
   }
 }
