@@ -143,6 +143,7 @@ services:
       - ConnectionStrings__Database=Host=payment-db;Port=5432;Database=payment_db;Username=user;Password=password
       - Authentication__Authority=http://ticketsalesplatform.identity.api:8080
       - MessageBroker__Host=rabbitmq
+      - Services__OrderApiUrl=http://ticketsalesplatform.orders.api:8080 
     depends_on:
       - payment-db
       - rabbitmq

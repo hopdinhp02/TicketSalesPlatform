@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TicketSalesPlatform.Payments.Api.Data;
 using TicketSalesPlatform.Payments.Api.Entities;
+using TicketSalesPlatform.Payments.Api.Infrastructure.Clients.Order;
 
 namespace TicketSalesPlatform.Payments.Api.Endpoints
 {
@@ -19,16 +20,33 @@ namespace TicketSalesPlatform.Payments.Api.Endpoints
         private static async Task<IResult> ProcessPayment(
             [FromBody] CreatePaymentRequest request,
             PaymentDbContext db,
-            IPublisher publisher
+            IPublisher publisher,
+            IOrderClient orderClient
         )
         {
+            var orderInfo = await orderClient.GetOrderAsync(request.OrderId);
+
+            if (orderInfo is null)
+            {
+                return Results.BadRequest(new { Error = "Order not found or invalid." });
+            }
+
+            if (orderInfo.Status == "Cancelled")
+            {
+                return Results.BadRequest(new { Error = "Order is Cancelled. Payment denied." });
+            }
+
             var payment = await db.Payments.FirstOrDefaultAsync(p => p.OrderId == request.OrderId);
 
             if (payment is null)
             {
                 try
                 {
-                    payment = new Payment(request.OrderId, request.UserId, request.Amount);
+                    payment = new Payment(
+                        request.OrderId,
+                        orderInfo.CustomerId,
+                        orderInfo.TotalPrice
+                    );
                     db.Payments.Add(payment);
                     await db.SaveChangesAsync();
                 }
@@ -184,7 +202,7 @@ namespace TicketSalesPlatform.Payments.Api.Endpoints
         }
     }
 
-    public record CreatePaymentRequest(Guid OrderId, Guid UserId, decimal Amount);
+    public record CreatePaymentRequest(Guid OrderId);
 
     public record RefundRequest(Guid PaymentId, string reason);
 }
