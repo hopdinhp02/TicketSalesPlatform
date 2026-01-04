@@ -1,5 +1,5 @@
 services:
-  # Infrastructure
+  # --- INFRASTRUCTURE ---
   event-db:
     image: postgres:15
     container_name: event-postgres
@@ -54,7 +54,7 @@ services:
       - "5672:5672"
       - "15672:15672"
 
-  # Services
+  # --- SERVICES ---
   ticketsalesplatform.apigateway:
     image: ${DOCKER_REGISTRY-}ticketsalesplatformapigateway
     build:
@@ -70,6 +70,8 @@ services:
       - ticketsalesplatform.events.api
       - ticketsalesplatform.orders.api
       - ticketsalesplatform.identity.api
+      - ticketsalesplatform.inventory.api
+      - ticketsalesplatform.payment.api
 
   ticketsalesplatform.events.api:
     image: ${DOCKER_REGISTRY-}ticketsalesplatformeventsapi
@@ -103,9 +105,46 @@ services:
       - Authentication__Authority=http://ticketsalesplatform.identity.api:8080
       - MessageBroker__Host=rabbitmq
       - Services__EventsApiUrl=http://ticketsalesplatform.events.api:8080
-      - Services__InventoryApiUrl=http://host.docker.internal:5109
+      - Services__InventoryApiUrl=http://ticketsalesplatform.inventory.api:8080 
     depends_on:
       - order-db
+      - rabbitmq
+      - ticketsalesplatform.identity.api
+      - ticketsalesplatform.inventory.api
+
+  ticketsalesplatform.inventory.api:
+    image: ${DOCKER_REGISTRY-}ticketsalesplatforminventoryapi
+    build:
+      context: .
+      dockerfile: src/Services/Inventory/Inventory.Api/Dockerfile
+    ports:
+      - "7004:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
+      - ConnectionStrings__Database=Host=inventory-db;Port=5432;Database=inventory_db;Username=user;Password=password
+      - Authentication__Authority=http://ticketsalesplatform.identity.api:8080
+      - MessageBroker__Host=rabbitmq
+    depends_on:
+      - inventory-db
+      - rabbitmq
+      - ticketsalesplatform.identity.api
+
+  ticketsalesplatform.payment.api:
+    image: ${DOCKER_REGISTRY-}ticketsalesplatformpaymentapi
+    build:
+      context: .
+      dockerfile: src/Services/Payments/Payments.Api/Dockerfile
+    ports:
+      - "7005:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
+      - ConnectionStrings__Database=Host=payment-db;Port=5432;Database=payment_db;Username=user;Password=password
+      - Authentication__Authority=http://ticketsalesplatform.identity.api:8080
+      - MessageBroker__Host=rabbitmq
+    depends_on:
+      - payment-db
       - rabbitmq
       - ticketsalesplatform.identity.api
 
@@ -122,7 +161,7 @@ services:
       - IdentityServer__IssuerUri=http://ticketsalesplatform.identity.api:8080
     volumes:
       - identity_keys:/app/keys
-    
+     
   ticketsalesplatform.notifications.api:
     image: ${DOCKER_REGISTRY-}ticketsalesplatformnotificationsapi
     build:
