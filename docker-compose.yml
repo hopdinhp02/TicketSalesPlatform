@@ -54,6 +54,27 @@ services:
       - "5672:5672"
       - "15672:15672"
 
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: jaeger
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+    ports:
+      - "16686:16686"
+      - "4317:4317"
+
+  seq:
+    image: datalust/seq:latest
+    container_name: seq
+    environment:
+      - ACCEPT_EULA=Y
+      - SEQ_FIRSTRUN_ADMINPASSWORD=MatKhauSieuManh123!
+    ports:
+      - "5341:5341"
+      - "8081:80"
+    volumes:
+      - ./seq-data:/data
+
   # --- SERVICES ---
   ticketsalesplatform.apigateway:
     image: ${DOCKER_REGISTRY-}ticketsalesplatformapigateway
@@ -66,6 +87,8 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:8080
       - Authentication__Authority=http://ticketsalesplatform.identity.api:8080
+      - OpenTelemetry__Endpoint=http://jaeger:4317
+      - Serilog__SeqServerUrl=http://seq:5341
     depends_on:
       - ticketsalesplatform.events.api
       - ticketsalesplatform.orders.api
@@ -86,6 +109,8 @@ services:
       - ConnectionStrings__Database=Host=event-db;Port=5432;Database=event_db;Username=user;Password=password
       - Authentication__Authority=http://ticketsalesplatform.identity.api:8080
       - MessageBroker__Host=rabbitmq
+      - OpenTelemetry__Endpoint=http://jaeger:4317
+      - Serilog__SeqServerUrl=http://seq:5341
     depends_on:
       - event-db
       - ticketsalesplatform.identity.api
@@ -106,6 +131,8 @@ services:
       - MessageBroker__Host=rabbitmq
       - Services__EventsApiUrl=http://ticketsalesplatform.events.api:8080
       - Services__InventoryApiUrl=http://ticketsalesplatform.inventory.api:8080 
+      - OpenTelemetry__Endpoint=http://jaeger:4317
+      - Serilog__SeqServerUrl=http://seq:5341
     depends_on:
       - order-db
       - rabbitmq
@@ -125,6 +152,8 @@ services:
       - ConnectionStrings__Database=Host=inventory-db;Port=5432;Database=inventory_db;Username=user;Password=password
       - Authentication__Authority=http://ticketsalesplatform.identity.api:8080
       - MessageBroker__Host=rabbitmq
+      - OpenTelemetry__Endpoint=http://jaeger:4317
+      - Serilog__SeqServerUrl=http://seq:5341
     depends_on:
       - inventory-db
       - rabbitmq
@@ -143,7 +172,9 @@ services:
       - ConnectionStrings__Database=Host=payment-db;Port=5432;Database=payment_db;Username=user;Password=password
       - Authentication__Authority=http://ticketsalesplatform.identity.api:8080
       - MessageBroker__Host=rabbitmq
-      - Services__OrderApiUrl=http://ticketsalesplatform.orders.api:8080 
+      - Services__OrderApiUrl=http://ticketsalesplatform.orders.api:8080
+      - OpenTelemetry__Endpoint=http://jaeger:4317
+      - Serilog__SeqServerUrl=http://seq:5341
     depends_on:
       - payment-db
       - rabbitmq
@@ -160,6 +191,8 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:8080
       - IdentityServer__IssuerUri=http://ticketsalesplatform.identity.api:8080
+      - OpenTelemetry__Endpoint=http://jaeger:4317
+      - Serilog__SeqServerUrl=http://seq:5341
     volumes:
       - identity_keys:/app/keys
      
@@ -174,6 +207,8 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:8080
       - MessageBroker__Host=rabbitmq
+      - OpenTelemetry__Endpoint=http://jaeger:4317
+      - Serilog__SeqServerUrl=http://seq:5341
     depends_on:
       - rabbitmq
 

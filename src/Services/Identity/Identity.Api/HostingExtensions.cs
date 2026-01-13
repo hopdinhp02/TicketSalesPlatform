@@ -1,5 +1,5 @@
 using Duende.IdentityServer;
-using Serilog;
+using SharedKernel.Extensions;
 
 namespace TicketSalesPlatform.Identity.Api;
 
@@ -7,6 +7,7 @@ internal static class HostingExtensions
 {
     public static WebApplication ConfigureServices(this WebApplicationBuilder builder)
     {
+        builder.AddObservability(builder.Environment.ApplicationName);
         builder.Services.AddRazorPages();
         var issuer = builder.Configuration["IdentityServer:IssuerUri"];
         var isBuilder = builder
@@ -60,7 +61,7 @@ internal static class HostingExtensions
 
     public static WebApplication ConfigurePipeline(this WebApplication app)
     {
-        app.UseSerilogRequestLogging();
+        app.UseObservability();
 
         if (app.Environment.IsDevelopment())
         {

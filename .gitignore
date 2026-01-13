@@ -23,3 +23,7 @@ obj/
 appsettings.Development.json
 secrets.json
 /docker-compose.override.yml
+
+# Ignore Seq data
+seq-data/
+**/seq-data/

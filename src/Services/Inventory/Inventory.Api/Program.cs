@@ -1,5 +1,6 @@
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
+using SharedKernel.Extensions;
 using TicketSalesPlatform.Inventory.Api.Data;
 using TicketSalesPlatform.Inventory.Api.Endpoints;
 using TicketSalesPlatform.Inventory.Api.Jobs;
@@ -60,7 +61,11 @@ builder.Services.AddMassTransit(x =>
 
 builder.Services.AddHostedService<ExpiredReservationCleanupService>();
 
+builder.AddObservability(builder.Environment.ApplicationName);
+
 var app = builder.Build();
+
+app.UseObservability();
 
 if (app.Environment.IsDevelopment())
 {

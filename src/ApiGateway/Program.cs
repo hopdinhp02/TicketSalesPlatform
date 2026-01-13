@@ -1,9 +1,7 @@
 using Microsoft.IdentityModel.Tokens;
 using Ocelot.DependencyInjection;
 using Ocelot.Middleware;
-using OpenTelemetry.Resources;
-using OpenTelemetry.Trace;
-using Serilog;
+using SharedKernel.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -29,22 +27,11 @@ builder
         }
     );
 
-builder
-    .Services.AddOpenTelemetry()
-    .ConfigureResource(resource =>
-        resource.AddService(serviceName: builder.Environment.ApplicationName)
-    )
-    .WithTracing(tracing =>
-        tracing.AddAspNetCoreInstrumentation().AddHttpClientInstrumentation().AddConsoleExporter()
-    );
-
-Log.Logger = new LoggerConfiguration().ReadFrom.Configuration(builder.Configuration).CreateLogger();
-
-builder.Host.UseSerilog();
+builder.AddObservability(builder.Environment.ApplicationName);
 
 var app = builder.Build();
 
-app.UseSerilogRequestLogging();
+app.UseObservability();
 
 await app.UseOcelot();
 

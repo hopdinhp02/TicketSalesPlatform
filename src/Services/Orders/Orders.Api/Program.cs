@@ -3,9 +3,7 @@ using JasperFx.Events.Projections;
 using Marten;
 using MassTransit;
 using MediatR;
-using OpenTelemetry.Resources;
-using OpenTelemetry.Trace;
-using Serilog;
+using SharedKernel.Extensions;
 using TicketSalesPlatform.Orders.Application.Abstractions;
 using TicketSalesPlatform.Orders.Application.Clients;
 using TicketSalesPlatform.Orders.Application.GetOrderById;
@@ -104,21 +102,11 @@ builder
 builder.Services.AddScoped<IRepository<Order>, OrderRepository>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
-builder
-    .Services.AddOpenTelemetry()
-    .ConfigureResource(resource =>
-        resource.AddService(serviceName: builder.Environment.ApplicationName)
-    )
-    .WithTracing(tracing =>
-        tracing.AddAspNetCoreInstrumentation().AddHttpClientInstrumentation().AddConsoleExporter()
-    );
-
-Log.Logger = new LoggerConfiguration().ReadFrom.Configuration(builder.Configuration).CreateLogger();
-builder.Host.UseSerilog();
+builder.AddObservability(builder.Environment.ApplicationName);
 
 var app = builder.Build();
 
-app.UseSerilogRequestLogging();
+app.UseObservability();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

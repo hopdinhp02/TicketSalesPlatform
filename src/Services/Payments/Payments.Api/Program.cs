@@ -1,5 +1,6 @@
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
+using SharedKernel.Extensions;
 using TicketSalesPlatform.Payments.Api.Data;
 using TicketSalesPlatform.Payments.Api.Endpoints;
 using TicketSalesPlatform.Payments.Api.Infrastructure.Authentication;
@@ -69,7 +70,11 @@ builder
     })
     .AddHttpMessageHandler<TokenPropagationHandler>();
 
+builder.AddObservability(builder.Environment.ApplicationName);
+
 var app = builder.Build();
+
+app.UseObservability();
 
 if (app.Environment.IsDevelopment())
 {

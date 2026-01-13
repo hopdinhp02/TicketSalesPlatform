@@ -1,7 +1,5 @@
 using MassTransit;
-using OpenTelemetry.Resources;
-using OpenTelemetry.Trace;
-using Serilog;
+using SharedKernel.Extensions;
 using TicketSalesPlatform.Notifications.Api.Consumers;
 using TicketSalesPlatform.Notifications.Api.Idempotency;
 
@@ -44,24 +42,13 @@ builder.Services.AddMassTransit(busConfigurator =>
 
 // --- END: MASSTRANSIT CONFIGURATION ---
 
-builder
-    .Services.AddOpenTelemetry()
-    .ConfigureResource(resource =>
-        resource.AddService(serviceName: builder.Environment.ApplicationName)
-    )
-    .WithTracing(tracing =>
-        tracing.AddAspNetCoreInstrumentation().AddHttpClientInstrumentation().AddConsoleExporter()
-    );
-
-Log.Logger = new LoggerConfiguration().ReadFrom.Configuration(builder.Configuration).CreateLogger();
-
-builder.Host.UseSerilog();
-
 builder.Services.AddSingleton<IProcessedMessageService, InMemoryProcessedMessageService>();
+
+builder.AddObservability(builder.Environment.ApplicationName);
 
 var app = builder.Build();
 
-app.UseSerilogRequestLogging();
+app.UseObservability();
 
 app.MapGet("/", () => "Notifications Service is running.");
 
