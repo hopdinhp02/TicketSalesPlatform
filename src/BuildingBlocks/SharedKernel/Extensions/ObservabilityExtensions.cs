@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using Serilog;
@@ -36,6 +37,14 @@ namespace SharedKernel.Extensions
                         {
                             opts.Endpoint = new Uri(jaegerEndpoint!);
                         });
+                })
+                .WithMetrics(metrics =>
+                {
+                    metrics
+                        .AddAspNetCoreInstrumentation()
+                        .AddHttpClientInstrumentation()
+                        .AddRuntimeInstrumentation()
+                        .AddPrometheusExporter();
                 });
 
             Log.Logger = new LoggerConfiguration()
@@ -54,6 +63,7 @@ namespace SharedKernel.Extensions
         public static WebApplication UseObservability(this WebApplication app)
         {
             app.UseSerilogRequestLogging();
+            app.MapPrometheusScrapingEndpoint();
 
             return app;
         }

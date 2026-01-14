@@ -1,6 +1,7 @@
 using Microsoft.IdentityModel.Tokens;
 using Ocelot.DependencyInjection;
 using Ocelot.Middleware;
+using Serilog;
 using SharedKernel.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -31,7 +32,12 @@ builder.AddObservability(builder.Environment.ApplicationName);
 
 var app = builder.Build();
 
-app.UseObservability();
+app.UseSerilogRequestLogging();
+app.UseRouting();
+app.UseEndpoints(endpoints =>
+{
+    endpoints.MapPrometheusScrapingEndpoint();
+});
 
 await app.UseOcelot();
 

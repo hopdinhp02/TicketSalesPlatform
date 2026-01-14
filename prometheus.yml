@@ -1,0 +1,14 @@
+global:
+  scrape_interval: 5s
+
+scrape_configs:
+  - job_name: "ticket-sales-platform-microservices"
+    static_configs:
+      - targets:
+          - "ticketsalesplatform.apigateway:8080"
+          - "ticketsalesplatform.events.api:8080"
+          - "ticketsalesplatform.orders.api:8080"
+          - "ticketsalesplatform.inventory.api:8080"
+          - "ticketsalesplatform.payment.api:8080"
+          - "ticketsalesplatform.identity.api:8080"
+          - "ticketsalesplatform.notifications.api:8080"
