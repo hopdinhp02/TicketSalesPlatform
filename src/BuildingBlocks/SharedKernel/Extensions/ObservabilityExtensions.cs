@@ -44,6 +44,7 @@ namespace SharedKernel.Extensions
                         .AddAspNetCoreInstrumentation()
                         .AddHttpClientInstrumentation()
                         .AddRuntimeInstrumentation()
+                        .AddProcessInstrumentation()
                         .AddPrometheusExporter();
                 });
 
@@ -51,6 +52,7 @@ namespace SharedKernel.Extensions
                 .ReadFrom.Configuration(builder.Configuration)
                 .Enrich.FromLogContext()
                 .Enrich.WithMachineName()
+                .Enrich.WithProperty("Application", serviceName)
                 .WriteTo.Console()
                 .WriteTo.Seq(seqEndpoint!)
                 .CreateLogger();
