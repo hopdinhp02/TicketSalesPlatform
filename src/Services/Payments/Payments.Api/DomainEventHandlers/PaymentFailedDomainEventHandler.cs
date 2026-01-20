@@ -5,30 +5,30 @@ using TicketSalesPlatform.Payments.Api.Entities.DomainEvents;
 
 namespace TicketSalesPlatform.Payments.Api.DomainEventHandlers
 {
-    public class PaymentCancelledDomainEventHandler : INotificationHandler<PaymentCancelled>
+    public class PaymentFailedDomainEventHandler : INotificationHandler<PaymentFailed>
     {
         private readonly IPublishEndpoint _publishEndpoint;
-        private readonly ILogger<PaymentCancelledDomainEventHandler> _logger;
+        private readonly ILogger<PaymentFailedDomainEventHandler> _logger;
 
-        public PaymentCancelledDomainEventHandler(
+        public PaymentFailedDomainEventHandler(
             IPublishEndpoint publishEndpoint,
-            ILogger<PaymentCancelledDomainEventHandler> logger
+            ILogger<PaymentFailedDomainEventHandler> logger
         )
         {
             _publishEndpoint = publishEndpoint;
             _logger = logger;
         }
 
-        public async Task Handle(PaymentCancelled notification, CancellationToken cancellationToken)
+        public async Task Handle(PaymentFailed notification, CancellationToken cancellationToken)
         {
             _logger.LogInformation(
-                "Payment Domain Event received: Payment {PaymentId} Cancelled. Order {OrderId}. Reason: {Reason}. Publishing Integration Event...",
+                "Payment Domain Event received: Payment {PaymentId} Failed. Order {OrderId}. Reason: {Reason}. Publishing Integration Event...",
                 notification.PaymentId,
                 notification.OrderId,
                 notification.Reason
             );
 
-            var integrationEvent = new PaymentCancelledIntegrationEvent(
+            var integrationEvent = new PaymentFailedIntegrationEvent(
                 notification.PaymentId,
                 notification.OrderId,
                 notification.Reason,
@@ -38,7 +38,7 @@ namespace TicketSalesPlatform.Payments.Api.DomainEventHandlers
             await _publishEndpoint.Publish(integrationEvent, cancellationToken);
 
             _logger.LogInformation(
-                "Successfully published PaymentCancelledIntegrationEvent for Payment {PaymentId} / Order {OrderId}.",
+                "Successfully published PaymentFailedIntegrationEvent for Payment {PaymentId} / Order {OrderId}.",
                 notification.PaymentId,
                 notification.OrderId
             );

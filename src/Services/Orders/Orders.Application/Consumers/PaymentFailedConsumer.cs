@@ -6,16 +6,16 @@ using TicketSalesPlatform.Orders.Domain.Aggregates;
 
 namespace TicketSalesPlatform.Orders.Application.Consumers
 {
-    public class PaymentCancelledConsumer : IConsumer<PaymentCancelledIntegrationEvent>
+    public class PaymentFailedConsumer : IConsumer<PaymentFailedIntegrationEvent>
     {
         private readonly IRepository<Order> _repository;
         private readonly IUnitOfWork _unitOfWork;
-        private readonly ILogger<PaymentCancelledConsumer> _logger;
+        private readonly ILogger<PaymentFailedConsumer> _logger;
 
-        public PaymentCancelledConsumer(
+        public PaymentFailedConsumer(
             IRepository<Order> repository,
             IUnitOfWork unitOfWork,
-            ILogger<PaymentCancelledConsumer> logger
+            ILogger<PaymentFailedConsumer> logger
         )
         {
             _repository = repository;
@@ -23,12 +23,12 @@ namespace TicketSalesPlatform.Orders.Application.Consumers
             _logger = logger;
         }
 
-        public async Task Consume(ConsumeContext<PaymentCancelledIntegrationEvent> context)
+        public async Task Consume(ConsumeContext<PaymentFailedIntegrationEvent> context)
         {
             var message = context.Message;
 
             _logger.LogInformation(
-                "Orders: Received Payment CANCELLED for Order {OrderId}. Reason: {Reason}. Updating status...",
+                "Orders: Received Payment FAILED for Order {OrderId}. Reason: {Reason}. Updating status...",
                 message.OrderId,
                 message.Reason
             );
@@ -68,7 +68,7 @@ namespace TicketSalesPlatform.Orders.Application.Consumers
             {
                 _logger.LogError(
                     ex,
-                    "Error processing Payment Cancelled event for Order {OrderId}",
+                    "Error processing Payment FAILED event for Order {OrderId}",
                     message.OrderId
                 );
                 throw;

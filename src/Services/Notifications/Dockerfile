@@ -13,7 +13,7 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0-noble AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY ["src/Services/Notifications/TicketSalesPlatform.Notifications.Api.csproj", "src/Services/Notifications/"]
-COPY ["src/BuildingBlocks/IntegrationEvents/TicketSalesPlatform.IntegrationEvents.csproj", "src/BuildingBlocks/IntegrationEvents/"]
+COPY ["src/BuildingBlocks/Contracts/TicketSalesPlatform.Contracts.csproj", "src/BuildingBlocks/Contracts/"]
 RUN dotnet restore "./src/Services/Notifications/TicketSalesPlatform.Notifications.Api.csproj"
 COPY . .
 WORKDIR "/src/src/Services/Notifications"

@@ -1,22 +1,25 @@
 ﻿using MassTransit;
 using Microsoft.EntityFrameworkCore;
-using TicketSalesPlatform.IntegrationEvents;
+using TicketSalesPlatform.Contracts.Commands;
 using TicketSalesPlatform.Payments.Api.Data;
 
 namespace TicketSalesPlatform.Payments.Api.Consumers
 {
-    public class OrderPlacedConsumer : IConsumer<OrderPlacedIntegrationEvent>
+    public class ProcessPaymentConsumer : IConsumer<ProcessPaymentCommand>
     {
-        private readonly ILogger<OrderPlacedConsumer> _logger;
+        private readonly ILogger<ProcessPaymentConsumer> _logger;
         private readonly PaymentDbContext _dbContext;
 
-        public OrderPlacedConsumer(ILogger<OrderPlacedConsumer> logger, PaymentDbContext dbContext)
+        public ProcessPaymentConsumer(
+            ILogger<ProcessPaymentConsumer> logger,
+            PaymentDbContext dbContext
+        )
         {
             _logger = logger;
             _dbContext = dbContext;
         }
 
-        public async Task Consume(ConsumeContext<OrderPlacedIntegrationEvent> context)
+        public async Task Consume(ConsumeContext<ProcessPaymentCommand> context)
         {
             var message = context.Message;
             _logger.LogInformation(

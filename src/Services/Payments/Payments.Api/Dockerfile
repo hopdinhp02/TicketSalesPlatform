@@ -13,7 +13,7 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0-noble AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY ["src/Services/Payments/Payments.Api/TicketSalesPlatform.Payments.Api.csproj", "src/Services/Payments/Payments.Api/"]
-COPY ["src/BuildingBlocks/IntegrationEvents/TicketSalesPlatform.IntegrationEvents.csproj", "src/BuildingBlocks/IntegrationEvents/"]
+COPY ["src/BuildingBlocks/Contracts/TicketSalesPlatform.Contracts.csproj", "src/BuildingBlocks/Contracts/"]
 COPY ["src/BuildingBlocks/SharedKernel/SharedKernel.csproj", "src/BuildingBlocks/SharedKernel/"]
 RUN dotnet restore "./src/Services/Payments/Payments.Api/TicketSalesPlatform.Payments.Api.csproj"
 COPY . .

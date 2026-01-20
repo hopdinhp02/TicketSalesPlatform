@@ -23,7 +23,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\BuildingBlocks\IntegrationEvents\TicketSalesPlatform.IntegrationEvents.csproj" />
+    <ProjectReference Include="..\..\..\BuildingBlocks\Contracts\TicketSalesPlatform.Contracts.csproj" />
     <ProjectReference Include="..\..\..\BuildingBlocks\SharedKernel\SharedKernel.csproj" />
   </ItemGroup>
 

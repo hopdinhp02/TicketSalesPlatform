@@ -1,25 +1,25 @@
 ﻿using MassTransit;
 using Microsoft.EntityFrameworkCore;
-using TicketSalesPlatform.IntegrationEvents;
+using TicketSalesPlatform.Contracts.Commands;
 using TicketSalesPlatform.Inventory.Api.Data;
 
 namespace TicketSalesPlatform.Inventory.Api.Consumers
 {
-    public class PaymentRefundedConsumer : IConsumer<PaymentRefundedIntegrationEvent>
+    public class ReleaseStockConsumer : IConsumer<ReleaseStockCommand>
     {
         private readonly InventoryDbContext _dbContext;
-        private readonly ILogger<PaymentRefundedConsumer> _logger;
+        private readonly ILogger<ReleaseStockConsumer> _logger;
 
-        public PaymentRefundedConsumer(
+        public ReleaseStockConsumer(
             InventoryDbContext dbContext,
-            ILogger<PaymentRefundedConsumer> logger
+            ILogger<ReleaseStockConsumer> logger
         )
         {
             _dbContext = dbContext;
             _logger = logger;
         }
 
-        public async Task Consume(ConsumeContext<PaymentRefundedIntegrationEvent> context)
+        public async Task Consume(ConsumeContext<ReleaseStockCommand> context)
         {
             var message = context.Message;
 
@@ -32,20 +32,29 @@ namespace TicketSalesPlatform.Inventory.Api.Consumers
                     .ToListAsync();
 
                 if (!seats.Any())
-                    return; // Idempotency
+                {
+                    _logger.LogWarning(
+                        "Inventory: No seats found for Order {OrderId} to cancel. Ignoring.",
+                        message.OrderId
+                    );
+                    return;
+                }
 
                 foreach (var seat in seats)
                 {
-                    seat.Refund();
+                    seat.Cancel();
 
-                    _logger.LogDebug("Marking Seat {SeatId} as Refunded pending commit.", seat.Id);
+                    _logger.LogDebug(
+                        "Inventory: Marking Seat {SeatId} as Available (Cancelled) pending commit.",
+                        seat.Id
+                    );
                 }
 
                 await _dbContext.SaveChangesAsync();
                 await transaction.CommitAsync();
 
                 _logger.LogInformation(
-                    "Inventory: Successfully released {Count} seats for Order {OrderId}.",
+                    "Inventory: Successfully CANCELLED reservation for {Count} seats of Order {OrderId}.",
                     seats.Count,
                     message.OrderId
                 );
@@ -56,7 +65,7 @@ namespace TicketSalesPlatform.Inventory.Api.Consumers
 
                 _logger.LogError(
                     ex,
-                    "FAILED to refund seats for Order {OrderId}. Rolling back transaction.",
+                    "Inventory: FAILED to cancel seats for Order {OrderId}. Rolling back transaction.",
                     message.OrderId
                 );
                 throw;

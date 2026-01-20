@@ -1,6 +1,6 @@
 ﻿using MassTransit;
 using MediatR;
-using TicketSalesPlatform.IntegrationEvents;
+using TicketSalesPlatform.Contracts.Events;
 using TicketSalesPlatform.Payments.Api.Entities.DomainEvents;
 
 namespace TicketSalesPlatform.Payments.Api.DomainEventHandlers

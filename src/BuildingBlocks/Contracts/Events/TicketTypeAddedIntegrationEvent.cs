@@ -1,4 +1,4 @@
-﻿namespace TicketSalesPlatform.IntegrationEvents
+﻿namespace TicketSalesPlatform.Contracts.Events
 {
     public record TicketTypeAddedIntegrationEvent(
         Guid EventId,

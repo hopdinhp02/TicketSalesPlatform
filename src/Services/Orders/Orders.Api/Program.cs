@@ -8,6 +8,7 @@ using TicketSalesPlatform.Orders.Application.Abstractions;
 using TicketSalesPlatform.Orders.Application.Clients;
 using TicketSalesPlatform.Orders.Application.GetOrderById;
 using TicketSalesPlatform.Orders.Application.PlaceOrder;
+using TicketSalesPlatform.Orders.Application.Sagas;
 using TicketSalesPlatform.Orders.Domain.Aggregates;
 using TicketSalesPlatform.Orders.Infrastructure.Authentication;
 using TicketSalesPlatform.Orders.Infrastructure.Clients;
@@ -50,6 +51,8 @@ builder
         var connectionString = builder.Configuration.GetConnectionString("Database");
         options.Connection(connectionString!);
         options.Projections.Add<OrderDetailsProjection>(ProjectionLifecycle.Async);
+
+        options.Schema.For<OrderState>().Identity(x => x.CorrelationId);
     })
     .UseLightweightSessions()
     .AddAsyncDaemon(DaemonMode.Solo);
@@ -58,6 +61,7 @@ builder.Services.AddMassTransit(x =>
 {
     x.SetEndpointNameFormatter(new KebabCaseEndpointNameFormatter("order", false));
 
+    x.AddSagaStateMachine<OrderStateMachine, OrderState>().MartenRepository();
     x.AddConsumers(TicketSalesPlatform.Orders.Application.AssemblyReference.Assembly);
     x.UsingRabbitMq(
         (context, cfg) =>
@@ -72,6 +76,8 @@ builder.Services.AddMassTransit(x =>
                     h.Password("guest");
                 }
             );
+
+            cfg.UseInMemoryOutbox(context);
 
             cfg.UseMessageRetry(r => r.Interval(3, TimeSpan.FromSeconds(5)));
 

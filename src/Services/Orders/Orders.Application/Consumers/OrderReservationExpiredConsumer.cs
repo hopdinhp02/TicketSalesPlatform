@@ -1,6 +1,6 @@
 ﻿using MassTransit;
 using Microsoft.Extensions.Logging;
-using TicketSalesPlatform.IntegrationEvents;
+using TicketSalesPlatform.Contracts.Events;
 using TicketSalesPlatform.Orders.Application.Abstractions;
 using TicketSalesPlatform.Orders.Domain.Aggregates;
 using TicketSalesPlatform.Orders.Domain.Enums;

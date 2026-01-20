@@ -1,18 +1,18 @@
 ﻿using MassTransit;
 using Microsoft.EntityFrameworkCore;
-using TicketSalesPlatform.IntegrationEvents;
+using TicketSalesPlatform.Contracts.Commands;
 using TicketSalesPlatform.Payments.Api.Data;
 using TicketSalesPlatform.Payments.Api.Entities;
 
 namespace TicketSalesPlatform.Payments.Api.Consumers
 {
-    public class OrderCancelledConsumer : IConsumer<OrderCancelledIntegrationEvent>
+    public class CancelPaymentConsumer : IConsumer<CancelPaymentCommand>
     {
-        private readonly ILogger<OrderCancelledConsumer> _logger;
+        private readonly ILogger<CancelPaymentConsumer> _logger;
         private readonly PaymentDbContext _dbContext;
 
-        public OrderCancelledConsumer(
-            ILogger<OrderCancelledConsumer> logger,
+        public CancelPaymentConsumer(
+            ILogger<CancelPaymentConsumer> logger,
             PaymentDbContext dbContext
         )
         {
@@ -20,7 +20,7 @@ namespace TicketSalesPlatform.Payments.Api.Consumers
             _dbContext = dbContext;
         }
 
-        public async Task Consume(ConsumeContext<OrderCancelledIntegrationEvent> context)
+        public async Task Consume(ConsumeContext<CancelPaymentCommand> context)
         {
             var message = context.Message;
             _logger.LogInformation(
@@ -38,6 +38,20 @@ namespace TicketSalesPlatform.Payments.Api.Consumers
                 _logger.LogWarning(
                     "Order {OrderId} cancelled but no Payment record found.",
                     message.OrderId
+                );
+                return;
+            }
+
+            // IDEMPOTENCY
+            if (
+                payment.Status == PaymentStatus.Cancelled
+                || payment.Status == PaymentStatus.Refunded
+            )
+            {
+                _logger.LogInformation(
+                    "Payment for Order {OrderId} is already processed ({Status}). Skipping.",
+                    message.OrderId,
+                    payment.Status
                 );
                 return;
             }
@@ -65,20 +79,6 @@ namespace TicketSalesPlatform.Payments.Api.Consumers
                 payment.Cancel($"Order Cancelled: {message.Reason}");
                 await _dbContext.SaveChangesAsync();
                 _logger.LogInformation("Payment CANCELLED for Order {OrderId}", message.OrderId);
-                return;
-            }
-
-            // IDEMPOTENCY
-            if (
-                payment.Status == PaymentStatus.Cancelled
-                || payment.Status == PaymentStatus.Refunded
-            )
-            {
-                _logger.LogInformation(
-                    "Payment for Order {OrderId} is already processed ({Status}). Skipping.",
-                    message.OrderId,
-                    payment.Status
-                );
                 return;
             }
         }

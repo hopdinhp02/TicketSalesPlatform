@@ -1,8 +1,8 @@
 ﻿using MassTransit;
 using MediatR;
 using Microsoft.Extensions.Logging;
+using TicketSalesPlatform.Contracts.Events;
 using TicketSalesPlatform.Events.Domain.DomainEvents;
-using TicketSalesPlatform.IntegrationEvents;
 
 namespace TicketSalesPlatform.Events.Application.DomainEventHandlers
 {

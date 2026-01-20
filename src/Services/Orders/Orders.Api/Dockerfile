@@ -16,7 +16,7 @@ COPY ["src/Services/Orders/Orders.Api/TicketSalesPlatform.Orders.Api.csproj", "s
 COPY ["src/Services/Orders/Orders.Application/TicketSalesPlatform.Orders.Application.csproj", "src/Services/Orders/Orders.Application/"]
 COPY ["src/Services/Orders/Orders.Domain/TicketSalesPlatform.Orders.Domain.csproj", "src/Services/Orders/Orders.Domain/"]
 COPY ["src/BuildingBlocks/SharedKernel/SharedKernel.csproj", "src/BuildingBlocks/SharedKernel/"]
-COPY ["src/BuildingBlocks/IntegrationEvents/TicketSalesPlatform.IntegrationEvents.csproj", "src/BuildingBlocks/IntegrationEvents/"]
+COPY ["src/BuildingBlocks/Contracts/TicketSalesPlatform.Contracts.csproj", "src/BuildingBlocks/Contracts/"]
 COPY ["src/Services/Orders/Orders.Infrastructure/TicketSalesPlatform.Orders.Infrastructure.csproj", "src/Services/Orders/Orders.Infrastructure/"]
 RUN dotnet restore "./src/Services/Orders/Orders.Api/TicketSalesPlatform.Orders.Api.csproj"
 COPY . .

@@ -1,5 +1,5 @@
 ﻿using MassTransit;
-using TicketSalesPlatform.IntegrationEvents;
+using TicketSalesPlatform.Contracts.Events;
 using TicketSalesPlatform.Notifications.Api.Idempotency;
 
 namespace TicketSalesPlatform.Notifications.Api.Consumers

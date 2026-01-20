@@ -1,4 +1,4 @@
-﻿namespace TicketSalesPlatform.IntegrationEvents
+﻿namespace TicketSalesPlatform.Contracts.Events
 {
     public sealed record OrderPaymentSucceededIntegrationEvent(
         Guid OrderId,

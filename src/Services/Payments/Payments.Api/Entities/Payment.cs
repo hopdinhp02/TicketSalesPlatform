@@ -1,5 +1,5 @@
-﻿using SharedKernel;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
+using SharedKernel;
 using TicketSalesPlatform.Payments.Api.Entities.DomainEvents;
 
 namespace TicketSalesPlatform.Payments.Api.Entities

@@ -1,6 +1,6 @@
 ﻿using MassTransit;
 using MediatR;
-using TicketSalesPlatform.IntegrationEvents;
+using TicketSalesPlatform.Contracts.Events;
 using TicketSalesPlatform.Orders.Domain.DomainEvents;
 
 namespace TicketSalesPlatform.Orders.Application.PlaceOrder;
@@ -17,7 +17,7 @@ public sealed class OrderPlacedDomainEventHandler : INotificationHandler<OrderPl
     public async Task Handle(OrderPlaced domainEvent, CancellationToken cancellationToken)
     {
         var itemsDto = domainEvent
-            .Items.Select(i => new OrderTicketItemDto(i.TicketTypeId, i.Quantity))
+            .Items.Select(i => new Contracts.Dtos.OrderItemDto(i.TicketTypeId, i.Quantity))
             .ToList();
 
         var integrationEvent = new OrderPlacedIntegrationEvent(

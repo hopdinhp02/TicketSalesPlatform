@@ -1,25 +1,29 @@
 ﻿using MassTransit;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
-using TicketSalesPlatform.IntegrationEvents;
+using TicketSalesPlatform.Contracts.Commands;
 using TicketSalesPlatform.Payments.Api.Data;
 
 namespace TicketSalesPlatform.Payments.Api.Consumers
 {
-    public class RefundRequiredConsumer : IConsumer<RefundRequiredIntegrationEvent>
+    public class RefundPaymentConsumer : IConsumer<RefundPaymentCommand>
     {
-        private readonly ILogger<RefundRequiredConsumer> _logger;
+        private readonly ILogger<RefundPaymentConsumer> _logger;
         private readonly PaymentDbContext _dbContext;
+        private readonly IPublisher _publisher;
 
-        public RefundRequiredConsumer(
-            ILogger<RefundRequiredConsumer> logger,
-            PaymentDbContext dbContext
+        public RefundPaymentConsumer(
+            ILogger<RefundPaymentConsumer> logger,
+            PaymentDbContext dbContext,
+            IPublisher publisher
         )
         {
             _logger = logger;
             _dbContext = dbContext;
+            _publisher = publisher;
         }
 
-        public async Task Consume(ConsumeContext<RefundRequiredIntegrationEvent> context)
+        public async Task Consume(ConsumeContext<RefundPaymentCommand> context)
         {
             var message = context.Message;
             _logger.LogWarning(
@@ -55,6 +59,11 @@ namespace TicketSalesPlatform.Payments.Api.Consumers
                         payment.Id,
                         message.OrderId
                     );
+                    foreach (var domainEvent in payment.GetDomainEvents())
+                    {
+                        await _publisher.Publish(domainEvent);
+                    }
+                    payment.ClearDomainEvents();
                 }
                 catch (Exception ex)
                 {

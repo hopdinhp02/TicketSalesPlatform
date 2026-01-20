@@ -1,5 +1,5 @@
 ﻿using MassTransit;
-using TicketSalesPlatform.IntegrationEvents;
+using TicketSalesPlatform.Contracts.Events;
 using TicketSalesPlatform.Inventory.Api.Data;
 using TicketSalesPlatform.Inventory.Api.Entities;
 

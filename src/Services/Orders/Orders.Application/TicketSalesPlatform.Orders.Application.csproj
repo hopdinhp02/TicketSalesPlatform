@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\BuildingBlocks\Contracts\TicketSalesPlatform.Contracts.csproj" />
     <ProjectReference Include="..\Orders.Domain\TicketSalesPlatform.Orders.Domain.csproj" />
-    <ProjectReference Include="..\..\..\BuildingBlocks\IntegrationEvents\TicketSalesPlatform.IntegrationEvents.csproj" />
   </ItemGroup>
 
   <ItemGroup>

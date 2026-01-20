@@ -1,18 +1,19 @@
 ﻿using MassTransit;
 using Microsoft.EntityFrameworkCore;
-using TicketSalesPlatform.IntegrationEvents;
+using TicketSalesPlatform.Contracts.Commands;
+using TicketSalesPlatform.Contracts.Events;
 using TicketSalesPlatform.Inventory.Api.Data;
 using TicketSalesPlatform.Inventory.Api.Entities;
 
 namespace TicketSalesPlatform.Inventory.Api.Consumers
 {
-    public class OrderPaymentSucceededConsumer : IConsumer<OrderPaymentSucceededIntegrationEvent>
+    public class ConfirmStockConsumer : IConsumer<ConfirmStockCommand>
     {
-        private readonly ILogger<OrderPaymentSucceededConsumer> _logger;
+        private readonly ILogger<ConfirmStockConsumer> _logger;
         private readonly InventoryDbContext _dbContext;
 
-        public OrderPaymentSucceededConsumer(
-            ILogger<OrderPaymentSucceededConsumer> logger,
+        public ConfirmStockConsumer(
+            ILogger<ConfirmStockConsumer> logger,
             InventoryDbContext dbContext
         )
         {
@@ -20,7 +21,7 @@ namespace TicketSalesPlatform.Inventory.Api.Consumers
             _dbContext = dbContext;
         }
 
-        public async Task Consume(ConsumeContext<OrderPaymentSucceededIntegrationEvent> context)
+        public async Task Consume(ConsumeContext<ConfirmStockCommand> context)
         {
             var message = context.Message;
             using var transaction = await _dbContext.Database.BeginTransactionAsync();
@@ -79,6 +80,8 @@ namespace TicketSalesPlatform.Inventory.Api.Consumers
                     reservedSeats.Count,
                     message.OrderId
                 );
+
+                await context.Publish(new StockConfirmedIntegrationEvent(message.OrderId));
             }
             catch (Exception ex)
             {
@@ -93,7 +96,7 @@ namespace TicketSalesPlatform.Inventory.Api.Consumers
         }
 
         private async Task InitiateRefund(
-            ConsumeContext<OrderPaymentSucceededIntegrationEvent> context,
+            ConsumeContext<ConfirmStockCommand> context,
             string reason
         )
         {
