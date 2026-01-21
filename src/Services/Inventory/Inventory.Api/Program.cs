@@ -52,6 +52,8 @@ builder.Services.AddMassTransit(x =>
                 }
             );
 
+            cfg.UseInMemoryOutbox(context);
+
             cfg.UseMessageRetry(r => r.Interval(3, TimeSpan.FromSeconds(5)));
 
             cfg.ConfigureEndpoints(context);
