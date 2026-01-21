@@ -10,6 +10,10 @@ builder.Configuration.AddJsonFile("ocelot.json", optional: false, reloadOnChange
 
 builder.Services.AddOcelot(builder.Configuration);
 
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerForOcelot(builder.Configuration);
+
 builder
     .Services.AddAuthentication("Bearer")
     .AddJwtBearer(
@@ -34,6 +38,12 @@ var app = builder.Build();
 
 app.UseSerilogRequestLogging();
 app.UseRouting();
+
+app.UseSwaggerForOcelotUI(options =>
+{
+    options.PathToSwaggerGenerator = "/swagger/docs";
+});
+
 app.UseEndpoints(endpoints =>
 {
     endpoints.MapPrometheusScrapingEndpoint();
