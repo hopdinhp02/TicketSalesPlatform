@@ -52,6 +52,11 @@ namespace TicketSalesPlatform.Events.Api.Extensions
                 );
             });
 
+            services.AddStackExchangeRedisCache(options =>
+            {
+                options.Configuration = config.GetConnectionString("Redis");
+            });
+
             services.AddScoped<
                 IRepository<TicketSalesPlatform.Events.Domain.Aggregates.Event>,
                 EventRepository

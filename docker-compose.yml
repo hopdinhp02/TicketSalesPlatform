@@ -91,6 +91,12 @@ services:
     depends_on:
       - prometheus
 
+  redis:
+    image: redis:alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+ 
   # --- SERVICES ---
   ticketsalesplatform.apigateway:
     image: ${DOCKER_REGISTRY-}ticketsalesplatformapigateway
@@ -123,6 +129,7 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:8080
       - ConnectionStrings__Database=Host=event-db;Port=5432;Database=event_db;Username=user;Password=password
+      - ConnectionStrings__Redis=redis:6379
       - Authentication__Authority=http://ticketsalesplatform.identity.api:8080
       - MessageBroker__Host=rabbitmq
       - OpenTelemetry__Endpoint=http://jaeger:4317

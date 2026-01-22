@@ -4,7 +4,7 @@ using TicketSalesPlatform.Events.Domain.Aggregates;
 
 namespace TicketSalesPlatform.Events.Application.PublishEvent
 {
-    public class PublishEventCommandHandler : IRequestHandler<PublishEventCommand>
+    public class PublishEventCommandHandler : IRequestHandler<PublishEventCommand, Unit>
     {
         private readonly IRepository<Event> _repository;
         private readonly IUnitOfWork _unitOfWork;
@@ -15,7 +15,10 @@ namespace TicketSalesPlatform.Events.Application.PublishEvent
             _unitOfWork = unitOfWork;
         }
 
-        public async Task Handle(PublishEventCommand request, CancellationToken cancellationToken)
+        public async Task<Unit> Handle(
+            PublishEventCommand request,
+            CancellationToken cancellationToken
+        )
         {
             var @event = await _repository.GetByIdAsync(request.EventId, cancellationToken);
 
@@ -26,6 +29,8 @@ namespace TicketSalesPlatform.Events.Application.PublishEvent
 
             _repository.Update(@event);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+            return Unit.Value;
         }
     }
 }
