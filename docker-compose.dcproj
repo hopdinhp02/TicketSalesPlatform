@@ -10,7 +10,9 @@
     <DockerServiceName>TicketSalesPlatform.apigateway</DockerServiceName>
   </PropertyGroup>
   <ItemGroup>
+    <None Include="docker-compose.prod.yml" />
     <None Include="docker-compose.yml" />
     <None Include=".dockerignore" />
+    <None Include="init-databases.sql" />
   </ItemGroup>
 </Project>

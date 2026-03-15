@@ -1,0 +1,152 @@
+services:
+  # --- INFRASTRUCTURE ---
+  postgres-shared:
+    image: postgres:15
+    container_name: postgres-shared
+    ports:
+      - "5432:5432" 
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+    volumes:
+      - postgres_shared_data:/var/lib/postgresql/data/
+      - ./init-databases.sql:/docker-entrypoint-initdb.d/init.sql
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+
+  redis:
+    image: redis:alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+
+  # --- SERVICES ---
+  ticketsalesplatform.apigateway:
+    image: ${DOCKER_REGISTRY-}ticketsalesplatformapigateway
+    build:
+      context: .
+      dockerfile: src/ApiGateway/Dockerfile
+    ports:
+      - "7000:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
+      - Authentication__Authority=http://ticketsalesplatform.identity.api:8080
+    depends_on:
+      - ticketsalesplatform.events.api
+      - ticketsalesplatform.orders.api
+      - ticketsalesplatform.identity.api
+      - ticketsalesplatform.inventory.api
+      - ticketsalesplatform.payment.api
+
+  ticketsalesplatform.events.api:
+    image: ${DOCKER_REGISTRY-}ticketsalesplatformeventsapi
+    build:
+      context: .
+      dockerfile: src/Services/Events/Events.Api/Dockerfile
+    ports:
+      - "7001:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
+      - ConnectionStrings__Database=Host=postgres-shared;Port=5432;Database=event_db;Username=user;Password=password
+      - ConnectionStrings__Redis=redis:6379
+      - Authentication__Authority=http://ticketsalesplatform.identity.api:8080
+      - MessageBroker__Host=rabbitmq
+    depends_on:
+      - postgres-shared
+      - ticketsalesplatform.identity.api
+      - rabbitmq
+
+  ticketsalesplatform.orders.api:
+    image: ${DOCKER_REGISTRY-}ticketsalesplatformordersapi
+    build:
+      context: .
+      dockerfile: src/Services/Orders/Orders.Api/Dockerfile
+    ports:
+      - "7002:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
+      - ConnectionStrings__Database=Host=postgres-shared;Port=5432;Database=order_db;Username=user;Password=password
+      - Authentication__Authority=http://ticketsalesplatform.identity.api:8080
+      - MessageBroker__Host=rabbitmq
+      - Services__EventsApiUrl=http://ticketsalesplatform.events.api:8080
+      - Services__InventoryApiUrl=http://ticketsalesplatform.inventory.api:8080 
+    depends_on:
+      - postgres-shared
+      - rabbitmq
+      - ticketsalesplatform.identity.api
+      - ticketsalesplatform.inventory.api
+
+  ticketsalesplatform.inventory.api:
+    image: ${DOCKER_REGISTRY-}ticketsalesplatforminventoryapi
+    build:
+      context: .
+      dockerfile: src/Services/Inventory/Inventory.Api/Dockerfile
+    ports:
+      - "7004:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
+      - ConnectionStrings__Database=Host=postgres-shared;Port=5432;Database=inventory_db;Username=user;Password=password
+      - Authentication__Authority=http://ticketsalesplatform.identity.api:8080
+      - MessageBroker__Host=rabbitmq
+    depends_on:
+      - postgres-shared
+      - rabbitmq
+      - ticketsalesplatform.identity.api
+
+  ticketsalesplatform.payment.api:
+    image: ${DOCKER_REGISTRY-}ticketsalesplatformpaymentapi
+    build:
+      context: .
+      dockerfile: src/Services/Payments/Payments.Api/Dockerfile
+    ports:
+      - "7005:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
+      - ConnectionStrings__Database=Host=postgres-shared;Port=5432;Database=payment_db;Username=user;Password=password
+      - Authentication__Authority=http://ticketsalesplatform.identity.api:8080
+      - MessageBroker__Host=rabbitmq
+      - Services__OrderApiUrl=http://ticketsalesplatform.orders.api:8080
+    depends_on:
+      - postgres-shared
+      - rabbitmq
+      - ticketsalesplatform.identity.api
+
+  ticketsalesplatform.identity.api:
+    image: ${DOCKER_REGISTRY-}ticketsalesplatformidentityapi
+    build:
+      context: .
+      dockerfile: src/Services/Identity/Identity.Api/Dockerfile
+    ports:
+      - "5001:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
+      - IdentityServer__IssuerUri=http://ticketsalesplatform.identity.api:8080
+    volumes:
+      - identity_keys:/app/keys
+      
+  ticketsalesplatform.notifications.api:
+    image: ${DOCKER_REGISTRY-}ticketsalesplatformnotificationsapi
+    build:
+      context: .
+      dockerfile: src/Services/Notifications/Dockerfile
+    ports:
+      - "7003:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
+      - MessageBroker__Host=rabbitmq
+    depends_on:
+      - rabbitmq
+
+volumes:
+  postgres_shared_data:
+  identity_keys:
