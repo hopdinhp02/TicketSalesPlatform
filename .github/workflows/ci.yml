@@ -1,0 +1,86 @@
+name: Build and Push Docker Images
+
+on:
+  push:
+    branches:
+      - ops/vps-burner-test # Only triggers on this branch
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      # --- API GATEWAY ---
+      - name: Build & Push API Gateway
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: src/ApiGateway/Dockerfile
+          push: true
+          tags: ${{ secrets.DOCKER_USERNAME }}/ticketsales-apigateway:latest
+
+      # --- EVENTS API ---
+      - name: Build & Push Events API
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: src/Services/Events/Events.Api/Dockerfile
+          push: true
+          tags: ${{ secrets.DOCKER_USERNAME }}/ticketsales-eventsapi:latest
+
+      # --- ORDERS API ---
+      - name: Build & Push Orders API
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: src/Services/Orders/Orders.Api/Dockerfile
+          push: true
+          tags: ${{ secrets.DOCKER_USERNAME }}/ticketsales-ordersapi:latest
+
+      # --- INVENTORY API ---
+      - name: Build & Push Inventory API
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: src/Services/Inventory/Inventory.Api/Dockerfile
+          push: true
+          tags: ${{ secrets.DOCKER_USERNAME }}/ticketsales-inventoryapi:latest
+
+      # --- PAYMENTS API ---
+      - name: Build & Push Payments API
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: src/Services/Payments/Payments.Api/Dockerfile
+          push: true
+          tags: ${{ secrets.DOCKER_USERNAME }}/ticketsales-paymentsapi:latest
+
+      # --- IDENTITY API ---
+      - name: Build & Push Identity API
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: src/Services/Identity/Identity.Api/Dockerfile
+          push: true
+          tags: ${{ secrets.DOCKER_USERNAME }}/ticketsales-identityapi:latest
+
+      # --- NOTIFICATIONS API ---
+      - name: Build & Push Notifications API
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: src/Services/Notifications/Dockerfile
+          push: true
+          tags: ${{ secrets.DOCKER_USERNAME }}/ticketsales-notificationsapi:latest

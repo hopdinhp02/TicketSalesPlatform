@@ -11,6 +11,7 @@ services:
     volumes:
       - postgres_shared_data:/var/lib/postgresql/data/
       - ./init-databases.sql:/docker-entrypoint-initdb.d/init.sql
+
   rabbitmq:
     image: rabbitmq:3-management
     ports:
@@ -25,10 +26,7 @@ services:
 
   # --- SERVICES ---
   ticketsalesplatform.apigateway:
-    image: ${DOCKER_REGISTRY-}ticketsalesplatformapigateway
-    build:
-      context: .
-      dockerfile: src/ApiGateway/Dockerfile
+    image: hopdinhp02/ticketsales-apigateway:latest
     ports:
       - "7000:8080"
     environment:
@@ -43,10 +41,7 @@ services:
       - ticketsalesplatform.payment.api
 
   ticketsalesplatform.events.api:
-    image: ${DOCKER_REGISTRY-}ticketsalesplatformeventsapi
-    build:
-      context: .
-      dockerfile: src/Services/Events/Events.Api/Dockerfile
+    image: hopdinhp02/ticketsales-eventsapi:latest
     ports:
       - "7001:8080"
     environment:
@@ -62,10 +57,7 @@ services:
       - rabbitmq
 
   ticketsalesplatform.orders.api:
-    image: ${DOCKER_REGISTRY-}ticketsalesplatformordersapi
-    build:
-      context: .
-      dockerfile: src/Services/Orders/Orders.Api/Dockerfile
+    image: hopdinhp02/ticketsales-ordersapi:latest
     ports:
       - "7002:8080"
     environment:
@@ -83,10 +75,7 @@ services:
       - ticketsalesplatform.inventory.api
 
   ticketsalesplatform.inventory.api:
-    image: ${DOCKER_REGISTRY-}ticketsalesplatforminventoryapi
-    build:
-      context: .
-      dockerfile: src/Services/Inventory/Inventory.Api/Dockerfile
+    image: hopdinhp02/ticketsales-inventoryapi:latest
     ports:
       - "7004:8080"
     environment:
@@ -101,10 +90,7 @@ services:
       - ticketsalesplatform.identity.api
 
   ticketsalesplatform.payment.api:
-    image: ${DOCKER_REGISTRY-}ticketsalesplatformpaymentapi
-    build:
-      context: .
-      dockerfile: src/Services/Payments/Payments.Api/Dockerfile
+    image: hopdinhp02/ticketsales-paymentsapi:latest
     ports:
       - "7005:8080"
     environment:
@@ -120,10 +106,7 @@ services:
       - ticketsalesplatform.identity.api
 
   ticketsalesplatform.identity.api:
-    image: ${DOCKER_REGISTRY-}ticketsalesplatformidentityapi
-    build:
-      context: .
-      dockerfile: src/Services/Identity/Identity.Api/Dockerfile
+    image: hopdinhp02/ticketsales-identityapi:latest
     ports:
       - "5001:8080"
     environment:
@@ -134,10 +117,7 @@ services:
       - identity_keys:/app/keys
       
   ticketsalesplatform.notifications.api:
-    image: ${DOCKER_REGISTRY-}ticketsalesplatformnotificationsapi
-    build:
-      context: .
-      dockerfile: src/Services/Notifications/Dockerfile
+    image: hopdinhp02/ticketsales-notificationsapi:latest
     ports:
       - "7003:8080"
     environment:
