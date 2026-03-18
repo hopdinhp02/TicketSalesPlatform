@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - ops/vps-burner-test # Only triggers on this branch
+    paths-ignore:
+      - 'k8s/**'
+      - 'README.md'
 
 jobs:
   build-and-push:
