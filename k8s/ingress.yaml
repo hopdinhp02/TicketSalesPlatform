@@ -1,0 +1,28 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ticketsales-ingress
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: ticketsales.local
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: api-gateway
+            port:
+              number: 8080
+
+  - host: auth.ticketsales.local
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: identity-api
+            port:
+              number: 8080

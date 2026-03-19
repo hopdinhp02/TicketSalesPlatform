@@ -3,13 +3,11 @@ kind: Service
 metadata:
   name: events-api
 spec:
-  type: NodePort
   selector:
     app: events-api
   ports:
     - port: 8080
       targetPort: 8080
-      nodePort: 30001
 
 ---
 apiVersion: apps/v1
