@@ -5,7 +5,7 @@ on:
     branches:
       - ops/vps-burner-test # Only triggers on this branch
     paths-ignore:
-      - 'k8s/**'
+      - 'charts/**'
       - 'README.md'
 
 jobs:
