@@ -1,10 +1,10 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: payment-api
+  name: orders-api
 spec:
   selector:
-    app: payment-api
+    app: orders-api
   ports:
     - port: 8080
       targetPort: 8080
@@ -13,20 +13,20 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: payment-api-deployment
+  name: orders-api-deployment
 spec:
-  replicas: 1
+  replicas: {{ .Values.ordersApi.replicas }}
   selector:
     matchLabels:
-      app: payment-api
+      app: orders-api
   template:
     metadata:
       labels:
-        app: payment-api
+        app: orders-api
     spec:
       containers:
-      - name: payment-api
-        image: hopdinhp02/ticketsales-paymentsapi:latest
+      - name: orders-api
+        image: "{{ .Values.ordersApi.image.repository }}:{{ .Values.ordersApi.image.tag }}"
         imagePullPolicy: Always
         ports:
         - containerPort: 8080
@@ -36,10 +36,12 @@ spec:
         - name: ASPNETCORE_URLS
           value: "http://+:8080"
         - name: ConnectionStrings__Database
-          value: "Host=postgres-shared;Port=5432;Database=payment_db;Username=user;Password=password"
+          value: "Host=postgres-shared;Port=5432;Database=order_db;Username=user;Password=password"
         - name: Authentication__Authority
           value: "http://identity-api:8080"
         - name: MessageBroker__Host
           value: "rabbitmq"
-        - name: Services__OrderApiUrl
-          value: "http://orders-api:8080"
+        - name: Services__EventsApiUrl
+          value: "http://events-api:8080"
+        - name: Services__InventoryApiUrl
+          value: "http://inventory-api:8080"

@@ -32,7 +32,9 @@ jobs:
           context: .
           file: src/ApiGateway/Dockerfile
           push: true
-          tags: ${{ secrets.DOCKER_USERNAME }}/ticketsales-apigateway:latest
+          tags: |
+            ${{ secrets.DOCKER_USERNAME }}/ticketsales-apigateway:latest
+            ${{ secrets.DOCKER_USERNAME }}/ticketsales-apigateway:${{ github.sha }}
 
       # --- EVENTS API ---
       - name: Build & Push Events API
@@ -41,7 +43,9 @@ jobs:
           context: .
           file: src/Services/Events/Events.Api/Dockerfile
           push: true
-          tags: ${{ secrets.DOCKER_USERNAME }}/ticketsales-eventsapi:latest
+          tags: |
+            ${{ secrets.DOCKER_USERNAME }}/ticketsales-eventsapi:latest
+            ${{ secrets.DOCKER_USERNAME }}/ticketsales-eventsapi:${{ github.sha }}
 
       # --- ORDERS API ---
       - name: Build & Push Orders API
@@ -50,7 +54,9 @@ jobs:
           context: .
           file: src/Services/Orders/Orders.Api/Dockerfile
           push: true
-          tags: ${{ secrets.DOCKER_USERNAME }}/ticketsales-ordersapi:latest
+          tags: |
+            ${{ secrets.DOCKER_USERNAME }}/ticketsales-ordersapi:latest
+            ${{ secrets.DOCKER_USERNAME }}/ticketsales-ordersapi:${{ github.sha }}
 
       # --- INVENTORY API ---
       - name: Build & Push Inventory API
@@ -59,7 +65,9 @@ jobs:
           context: .
           file: src/Services/Inventory/Inventory.Api/Dockerfile
           push: true
-          tags: ${{ secrets.DOCKER_USERNAME }}/ticketsales-inventoryapi:latest
+          tags: |
+            ${{ secrets.DOCKER_USERNAME }}/ticketsales-inventoryapi:latest
+            ${{ secrets.DOCKER_USERNAME }}/ticketsales-inventoryapi:${{ github.sha }}
 
       # --- PAYMENTS API ---
       - name: Build & Push Payments API
@@ -68,7 +76,9 @@ jobs:
           context: .
           file: src/Services/Payments/Payments.Api/Dockerfile
           push: true
-          tags: ${{ secrets.DOCKER_USERNAME }}/ticketsales-paymentsapi:latest
+          tags: |
+            ${{ secrets.DOCKER_USERNAME }}/ticketsales-paymentsapi:latest
+            ${{ secrets.DOCKER_USERNAME }}/ticketsales-paymentsapi:${{ github.sha }}
 
       # --- IDENTITY API ---
       - name: Build & Push Identity API
@@ -77,7 +87,9 @@ jobs:
           context: .
           file: src/Services/Identity/Identity.Api/Dockerfile
           push: true
-          tags: ${{ secrets.DOCKER_USERNAME }}/ticketsales-identityapi:latest
+          tags: |
+            ${{ secrets.DOCKER_USERNAME }}/ticketsales-identityapi:latest
+            ${{ secrets.DOCKER_USERNAME }}/ticketsales-identityapi:${{ github.sha }}
 
       # --- NOTIFICATIONS API ---
       - name: Build & Push Notifications API
@@ -86,4 +98,6 @@ jobs:
           context: .
           file: src/Services/Notifications/Dockerfile
           push: true
-          tags: ${{ secrets.DOCKER_USERNAME }}/ticketsales-notificationsapi:latest
+          tags: |
+            ${{ secrets.DOCKER_USERNAME }}/ticketsales-notificationsapi:latest
+            ${{ secrets.DOCKER_USERNAME }}/ticketsales-notificationsapi:${{ github.sha }}

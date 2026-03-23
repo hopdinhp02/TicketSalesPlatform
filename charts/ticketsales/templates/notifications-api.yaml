@@ -15,7 +15,7 @@ kind: Deployment
 metadata:
   name: notifications-api-deployment
 spec:
-  replicas: 1
+  replicas: {{ .Values.notificationsApi.replicas }}
   selector:
     matchLabels:
       app: notifications-api
@@ -26,7 +26,7 @@ spec:
     spec:
       containers:
       - name: notifications-api
-        image: hopdinhp02/ticketsales-notificationsapi:latest
+        image: "{{ .Values.notificationsApi.image.repository }}:{{ .Values.notificationsApi.image.tag }}"
         imagePullPolicy: Always
         ports:
         - containerPort: 8080

@@ -15,7 +15,7 @@ kind: Deployment
 metadata:
   name: inventory-api-deployment
 spec:
-  replicas: 1
+  replicas: {{ .Values.inventoryApi.replicas }}
   selector:
     matchLabels:
       app: inventory-api
@@ -26,7 +26,7 @@ spec:
     spec:
       containers:
       - name: inventory-api
-        image: hopdinhp02/ticketsales-inventoryapi:latest
+        image: "{{ .Values.inventoryApi.image.repository }}:{{ .Values.inventoryApi.image.tag }}"
         imagePullPolicy: Always
         ports:
         - containerPort: 8080

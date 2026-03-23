@@ -15,7 +15,7 @@ kind: Deployment
 metadata:
   name: identity-api-deployment
 spec:
-  replicas: 1
+  replicas: {{ .Values.identityApi.replicas }}
   selector:
     matchLabels:
       app: identity-api
@@ -26,7 +26,7 @@ spec:
     spec:
       containers:
       - name: identity-api
-        image: hopdinhp02/ticketsales-identityapi:latest
+        image: "{{ .Values.identityApi.image.repository }}:{{ .Values.identityApi.image.tag }}"
         imagePullPolicy: Always
         ports:
         - containerPort: 8080

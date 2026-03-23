@@ -1,10 +1,10 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: orders-api
+  name: events-api
 spec:
   selector:
-    app: orders-api
+    app: events-api
   ports:
     - port: 8080
       targetPort: 8080
@@ -13,20 +13,20 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: orders-api-deployment
+  name: events-api-deployment
 spec:
-  replicas: 1
+  replicas: {{ .Values.eventsApi.replicas }}
   selector:
     matchLabels:
-      app: orders-api
+      app: events-api
   template:
     metadata:
       labels:
-        app: orders-api
+        app: events-api
     spec:
       containers:
-      - name: orders-api
-        image: hopdinhp02/ticketsales-ordersapi:latest
+      - name: events-api
+        image: "{{ .Values.eventsApi.image.repository }}:{{ .Values.eventsApi.image.tag }}"
         imagePullPolicy: Always
         ports:
         - containerPort: 8080
@@ -36,12 +36,10 @@ spec:
         - name: ASPNETCORE_URLS
           value: "http://+:8080"
         - name: ConnectionStrings__Database
-          value: "Host=postgres-shared;Port=5432;Database=order_db;Username=user;Password=password"
-        - name: Authentication__Authority
-          value: "http://identity-api:8080"
+          value: "Host=postgres-shared;Port=5432;Database=event_db;Username=user;Password=password"
         - name: MessageBroker__Host
           value: "rabbitmq"
-        - name: Services__EventsApiUrl
-          value: "http://events-api:8080"
-        - name: Services__InventoryApiUrl
-          value: "http://inventory-api:8080"
+        - name: Authentication__Authority
+          value: "http://identity-api:8080" 
+        - name: ConnectionStrings__Redis
+          value: "redis:6379"

@@ -1,0 +1,41 @@
+apiGateway:
+  image:
+    repository: hopdinhp02/ticketsales-apigateway
+    tag: "latest"
+  replicas: 1
+
+eventsApi:
+  image:
+    repository: hopdinhp02/ticketsales-eventsapi
+    tag: "latest"
+  replicas: 1
+
+ordersApi:
+  image:
+    repository: hopdinhp02/ticketsales-ordersapi
+    tag: "latest"
+  replicas: 1
+
+inventoryApi:
+  image:
+    repository: hopdinhp02/ticketsales-inventoryapi
+    tag: "latest"
+  replicas: 1
+
+paymentsApi:
+  image:
+    repository: hopdinhp02/ticketsales-paymentsapi
+    tag: "latest"
+  replicas: 1
+
+identityApi:
+  image:
+    repository: hopdinhp02/ticketsales-identityapi
+    tag: "latest"
+  replicas: 1
+
+notificationsApi:
+  image:
+    repository: hopdinhp02/ticketsales-notificationsapi
+    tag: "latest"
+  replicas: 1
