@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 using Microsoft.Extensions.Logging;
 using TicketSalesPlatform.Orders.Application.Abstractions;
 using TicketSalesPlatform.Orders.Application.Clients;
@@ -12,21 +12,18 @@ namespace TicketSalesPlatform.Orders.Application.PlaceOrder
         private readonly IRepository<Order> _orderRepository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IEventsClient _eventsClient;
-        private readonly IInventoryClient _inventoryClient;
         private readonly ILogger<PlaceOrderCommandHandler> _logger;
 
         public PlaceOrderCommandHandler(
             IRepository<Order> orderRepository,
             IUnitOfWork unitOfWork,
             IEventsClient eventsClient,
-            IInventoryClient inventoryClient,
             ILogger<PlaceOrderCommandHandler> logger
         )
         {
             _orderRepository = orderRepository;
             _unitOfWork = unitOfWork;
             _eventsClient = eventsClient;
-            _inventoryClient = inventoryClient;
             _logger = logger;
         }
 
@@ -35,9 +32,7 @@ namespace TicketSalesPlatform.Orders.Application.PlaceOrder
             CancellationToken cancellationToken
         )
         {
-            var orderItemsEntity = new List<InitialOrderItem>();
-
-            foreach (var itemDto in request.Items)
+            var validationTasks = request.Items.Select(async itemDto =>
             {
                 var ticketInfo = await _eventsClient.GetTicketTypeAsync(
                     itemDto.TicketTypeId,
@@ -51,28 +46,16 @@ namespace TicketSalesPlatform.Orders.Application.PlaceOrder
                     );
                 }
 
-                var hasStock = await _inventoryClient.CheckStockAsync(
-                    itemDto.TicketTypeId,
-                    itemDto.Quantity,
-                    cancellationToken
+                return new InitialOrderItem(
+                    ticketInfo.Id,
+                    ticketInfo.Name,
+                    ticketInfo.Price,
+                    itemDto.Quantity
                 );
+            });
 
-                if (!hasStock)
-                {
-                    throw new InvalidOperationException(
-                        $"Insufficient stock for ticket: {ticketInfo.Name}. Request: {itemDto.Quantity}"
-                    );
-                }
-
-                orderItemsEntity.Add(
-                    new InitialOrderItem(
-                        ticketInfo.Id,
-                        ticketInfo.Name,
-                        ticketInfo.Price,
-                        itemDto.Quantity
-                    )
-                );
-            }
+            var orderItemsArray = await Task.WhenAll(validationTasks);
+            var orderItemsEntity = orderItemsArray.ToList();
 
             var order = Order.Initialize(request.CustomerId, orderItemsEntity);
 

@@ -1,4 +1,4 @@
-﻿using TicketSalesPlatform.Orders.Application.Clients;
+using TicketSalesPlatform.Orders.Application.Clients;
 using TicketSalesPlatform.Orders.Infrastructure.Authentication;
 using TicketSalesPlatform.Orders.Infrastructure.Clients;
 using TicketSalesPlatform.Orders.Infrastructure.Extensions;
@@ -23,13 +23,7 @@ namespace TicketSalesPlatform.Orders.Api.Extensions
                 })
                 .AddDefaultResilience();
 
-            services
-                .AddHttpClient<IInventoryClient, InventoryClient>(client =>
-                {
-                    var inventoryApiUrl = configuration["Services:InventoryApiUrl"];
-                    client.BaseAddress = new Uri(inventoryApiUrl!);
-                })
-                .AddDefaultResilience();
+
 
             return services;
         }
