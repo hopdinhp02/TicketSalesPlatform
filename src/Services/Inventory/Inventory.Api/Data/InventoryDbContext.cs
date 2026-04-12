@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+using MassTransit;
+using Microsoft.EntityFrameworkCore;
 using TicketSalesPlatform.Inventory.Api.Entities;
 
 namespace TicketSalesPlatform.Inventory.Api.Data
@@ -15,6 +16,10 @@ namespace TicketSalesPlatform.Inventory.Api.Data
             base.OnModelCreating(modelBuilder);
 
             modelBuilder.Entity<Seat>().Property(s => s.Version).IsRowVersion();
+
+            modelBuilder.AddInboxStateEntity();
+            modelBuilder.AddOutboxMessageEntity();
+            modelBuilder.AddOutboxStateEntity();
         }
     }
 }

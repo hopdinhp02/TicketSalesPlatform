@@ -1,4 +1,4 @@
-﻿using MassTransit;
+using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using TicketSalesPlatform.Contracts.Commands;
 using TicketSalesPlatform.Contracts.Events;
@@ -24,7 +24,6 @@ namespace TicketSalesPlatform.Inventory.Api.Consumers
         public async Task Consume(ConsumeContext<ConfirmStockCommand> context)
         {
             var message = context.Message;
-            using var transaction = await _dbContext.Database.BeginTransactionAsync();
 
             try
             {
@@ -72,16 +71,15 @@ namespace TicketSalesPlatform.Inventory.Api.Consumers
                     }
                 }
 
+                await context.Publish(new StockConfirmedIntegrationEvent(message.OrderId));
+
                 await _dbContext.SaveChangesAsync();
-                await transaction.CommitAsync();
 
                 _logger.LogInformation(
                     "Success! Marked {Count} seats as SOLD for Order {OrderId}.",
                     reservedSeats.Count,
                     message.OrderId
                 );
-
-                await context.Publish(new StockConfirmedIntegrationEvent(message.OrderId));
             }
             catch (Exception ex)
             {
@@ -90,7 +88,6 @@ namespace TicketSalesPlatform.Inventory.Api.Consumers
                     "ERROR: Failed to finalize seats for Order {OrderId}.",
                     message.OrderId
                 );
-                await transaction.RollbackAsync();
                 throw;
             }
         }

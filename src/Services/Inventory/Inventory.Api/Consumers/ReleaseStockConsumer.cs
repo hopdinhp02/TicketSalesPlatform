@@ -1,4 +1,4 @@
-﻿using MassTransit;
+using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using TicketSalesPlatform.Contracts.Commands;
 using TicketSalesPlatform.Inventory.Api.Data;
@@ -22,8 +22,6 @@ namespace TicketSalesPlatform.Inventory.Api.Consumers
         public async Task Consume(ConsumeContext<ReleaseStockCommand> context)
         {
             var message = context.Message;
-
-            using var transaction = await _dbContext.Database.BeginTransactionAsync();
 
             try
             {
@@ -51,7 +49,6 @@ namespace TicketSalesPlatform.Inventory.Api.Consumers
                 }
 
                 await _dbContext.SaveChangesAsync();
-                await transaction.CommitAsync();
 
                 _logger.LogInformation(
                     "Inventory: Successfully CANCELLED reservation for {Count} seats of Order {OrderId}.",
@@ -61,8 +58,6 @@ namespace TicketSalesPlatform.Inventory.Api.Consumers
             }
             catch (Exception ex)
             {
-                await transaction.RollbackAsync();
-
                 _logger.LogError(
                     ex,
                     "Inventory: FAILED to cancel seats for Order {OrderId}. Rolling back transaction.",

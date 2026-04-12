@@ -1,4 +1,4 @@
-﻿using MassTransit;
+using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using TicketSalesPlatform.Inventory.Api.Data;
 using TicketSalesPlatform.Inventory.Api.Jobs;
@@ -24,6 +24,18 @@ namespace TicketSalesPlatform.Inventory.Api.Extensions
 
                 x.AddConsumers(typeof(Program).Assembly);
 
+                x.AddEntityFrameworkOutbox<InventoryDbContext>(o =>
+                {
+                    o.UsePostgres();
+                    o.UseBusOutbox();
+                    o.IsolationLevel = System.Data.IsolationLevel.Serializable;
+                });
+
+                x.AddConfigureEndpointsCallback((context, name, cfg) =>
+                {
+                    cfg.UseEntityFrameworkOutbox<InventoryDbContext>(context);
+                });
+
                 x.UsingRabbitMq(
                     (context, cfg) =>
                     {
@@ -38,8 +50,6 @@ namespace TicketSalesPlatform.Inventory.Api.Extensions
                                 h.Password("guest");
                             }
                         );
-
-                        cfg.UseInMemoryOutbox(context);
 
                         cfg.UseMessageRetry(r => r.Interval(3, TimeSpan.FromSeconds(5)));
 

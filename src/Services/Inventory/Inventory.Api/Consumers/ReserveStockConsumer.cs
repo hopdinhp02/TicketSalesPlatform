@@ -1,4 +1,4 @@
-﻿using System.Data;
+using System.Data;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using TicketSalesPlatform.Contracts.Commands;
@@ -35,10 +35,6 @@ public class ReserveStockConsumer : IConsumer<ReserveStockCommand>
             return;
         }
 
-        using var transaction = await _dbContext.Database.BeginTransactionAsync(
-            IsolationLevel.Serializable
-        );
-
         try
         {
             _logger.LogInformation(
@@ -71,8 +67,6 @@ public class ReserveStockConsumer : IConsumer<ReserveStockCommand>
                         seatsToReserve.Count
                     );
 
-                    await transaction.RollbackAsync();
-
                     await context.Publish(
                         new OrderReservationFailedIntegrationEvent(
                             message.OrderId,
@@ -88,20 +82,17 @@ public class ReserveStockConsumer : IConsumer<ReserveStockCommand>
                 }
             }
 
-            await _dbContext.SaveChangesAsync();
-            await transaction.CommitAsync();
-
-            _logger.LogInformation("Success! Reserved seats for Order {OrderId}.", message.OrderId);
-
             await context.Publish(
                 new StockReservedIntegrationEvent(message.OrderId, DateTime.UtcNow)
             );
+
+            await _dbContext.SaveChangesAsync();
+
+            _logger.LogInformation("Success! Reserved seats for Order {OrderId}.", message.OrderId);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error reserving stock for Order {OrderId}", message.OrderId);
-            await transaction.RollbackAsync();
-
             throw;
         }
     }
