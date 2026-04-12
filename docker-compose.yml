@@ -134,6 +134,10 @@ services:
       - MessageBroker__Host=rabbitmq
       - OpenTelemetry__Endpoint=http://jaeger:4317
       - Serilog__SeqServerUrl=http://seq:5341
+    networks:
+      default:
+        aliases:
+          - events-api
     depends_on:
       - event-db
       - ticketsalesplatform.identity.api
@@ -156,6 +160,10 @@ services:
       - Services__InventoryApiUrl=http://ticketsalesplatform.inventory.api:8080 
       - OpenTelemetry__Endpoint=http://jaeger:4317
       - Serilog__SeqServerUrl=http://seq:5341
+    networks:
+      default:
+        aliases:
+          - orders-api
     depends_on:
       - order-db
       - rabbitmq
@@ -177,6 +185,10 @@ services:
       - MessageBroker__Host=rabbitmq
       - OpenTelemetry__Endpoint=http://jaeger:4317
       - Serilog__SeqServerUrl=http://seq:5341
+    networks:
+      default:
+        aliases:
+          - inventory-api
     depends_on:
       - inventory-db
       - rabbitmq
@@ -198,6 +210,10 @@ services:
       - Services__OrderApiUrl=http://ticketsalesplatform.orders.api:8080
       - OpenTelemetry__Endpoint=http://jaeger:4317
       - Serilog__SeqServerUrl=http://seq:5341
+    networks:
+      default:
+        aliases:
+          - payment-api
     depends_on:
       - payment-db
       - rabbitmq
