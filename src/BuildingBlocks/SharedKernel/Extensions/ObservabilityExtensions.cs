@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using OpenTelemetry.Metrics;
@@ -31,6 +31,7 @@ namespace SharedKernel.Extensions
                 .WithTracing(tracing =>
                 {
                     tracing
+                        .AddSource("MassTransit")
                         .AddAspNetCoreInstrumentation()
                         .AddHttpClientInstrumentation()
                         .AddOtlpExporter(opts =>
@@ -41,6 +42,7 @@ namespace SharedKernel.Extensions
                 .WithMetrics(metrics =>
                 {
                     metrics
+                        .AddMeter("MassTransit")
                         .AddAspNetCoreInstrumentation()
                         .AddHttpClientInstrumentation()
                         .AddRuntimeInstrumentation()
