@@ -1,4 +1,4 @@
-﻿using JasperFx.Events.Daemon;
+using JasperFx.Events.Daemon;
 using JasperFx.Events.Projections;
 using Marten;
 using MassTransit;
@@ -7,6 +7,8 @@ using TicketSalesPlatform.Orders.Application.Sagas;
 using TicketSalesPlatform.Orders.Domain.Aggregates;
 using TicketSalesPlatform.Orders.Infrastructure.Persistence;
 using TicketSalesPlatform.Orders.Infrastructure.Projections;
+using TicketSalesPlatform.Orders.Api.Options;
+using TicketSalesPlatform.Contracts.Commands;
 
 namespace TicketSalesPlatform.Orders.Api.Extensions
 {
@@ -17,6 +19,16 @@ namespace TicketSalesPlatform.Orders.Api.Extensions
             IConfiguration configuration
         )
         {
+            var messageBrokerSettings = new MessageBrokerSettings();
+            configuration.GetSection(MessageBrokerSettings.SectionName).Bind(messageBrokerSettings);
+
+            EndpointConvention.Map<ReserveStockCommand>(new Uri($"queue:{messageBrokerSettings.InventoryReserveStockQueue}"));
+            EndpointConvention.Map<ConfirmStockCommand>(new Uri($"queue:{messageBrokerSettings.InventoryConfirmStockQueue}"));
+            EndpointConvention.Map<ReleaseStockCommand>(new Uri($"queue:{messageBrokerSettings.InventoryReleaseStockQueue}"));
+            EndpointConvention.Map<ProcessPaymentCommand>(new Uri($"queue:{messageBrokerSettings.PaymentProcessPaymentQueue}"));
+            EndpointConvention.Map<CancelPaymentCommand>(new Uri($"queue:{messageBrokerSettings.PaymentCancelPaymentQueue}"));
+            EndpointConvention.Map<RefundPaymentCommand>(new Uri($"queue:{messageBrokerSettings.PaymentRefundPaymentQueue}"));
+
             services
                 .AddMarten(options =>
                 {
