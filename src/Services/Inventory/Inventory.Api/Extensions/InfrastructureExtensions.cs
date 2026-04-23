@@ -28,13 +28,15 @@ namespace TicketSalesPlatform.Inventory.Api.Extensions
                 {
                     o.UsePostgres();
                     o.UseBusOutbox();
-                    o.IsolationLevel = System.Data.IsolationLevel.Serializable;
+                    o.IsolationLevel = System.Data.IsolationLevel.ReadCommitted;
                 });
 
-                x.AddConfigureEndpointsCallback((context, name, cfg) =>
-                {
-                    cfg.UseEntityFrameworkOutbox<InventoryDbContext>(context);
-                });
+                x.AddConfigureEndpointsCallback(
+                    (context, name, cfg) =>
+                    {
+                        cfg.UseEntityFrameworkOutbox<InventoryDbContext>(context);
+                    }
+                );
 
                 x.UsingRabbitMq(
                     (context, cfg) =>

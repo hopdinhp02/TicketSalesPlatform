@@ -1,4 +1,3 @@
-using System.Data;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using TicketSalesPlatform.Contracts.Commands;
@@ -51,11 +50,17 @@ public class ReserveStockConsumer : IConsumer<ReserveStockCommand>
             foreach (var item in message.Items)
             {
                 var seatsToReserve = await _dbContext
-                    .Seats.Where(s =>
-                        s.TicketTypeId == item.TicketTypeId && s.Status == SeatStatus.Available
+                    .Seats.FromSqlRaw(
+                        $@"
+                        SELECT *, xmin FROM ""Seats""
+                        WHERE ""TicketTypeId"" = {{0}} AND ""Status"" = {{1}}
+                        ORDER BY ""SeatNo""
+                        LIMIT {{2}}
+                        FOR UPDATE SKIP LOCKED",
+                        item.TicketTypeId,
+                        (int)SeatStatus.Available,
+                        item.Quantity
                     )
-                    .OrderBy(s => s.SeatNo)
-                    .Take(item.Quantity)
                     .ToListAsync();
 
                 if (seatsToReserve.Count < item.Quantity)
