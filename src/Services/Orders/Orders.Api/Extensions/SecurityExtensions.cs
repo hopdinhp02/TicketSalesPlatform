@@ -1,4 +1,6 @@
-﻿namespace TicketSalesPlatform.Orders.Api.Extensions
+using SharedKernel.Extensions;
+
+namespace TicketSalesPlatform.Orders.Api.Extensions
 {
     public static class SecurityExtensions
     {
@@ -8,24 +10,7 @@
             IWebHostEnvironment environment
         )
         {
-            services
-                .AddAuthentication("Bearer")
-                .AddJwtBearer(
-                    "Bearer",
-                    options =>
-                    {
-                        options.Authority = configuration["Authentication:Authority"];
-                        options.Audience = "orders";
-
-                        if (environment.IsDevelopment())
-                        {
-                            options.RequireHttpsMetadata = false;
-                        }
-                    }
-                );
-
-            services.AddAuthorization();
-
+            services.AddCustomAuthenticationAndAuthorization(configuration, environment, "orders");
             return services;
         }
     }

@@ -7,7 +7,6 @@
         "ticketsalesplatform.apigateway": "StartDebugging",
         "ticketsalesplatform.events.api": "StartDebugging",
         "ticketsalesplatform.orders.api": "StartDebugging",
-        "ticketsalesplatform.identity.api": "StartDebugging",
         "ticketsalesplatform.notifications.api": "StartDebugging"
       }
     }

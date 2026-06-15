@@ -1,4 +1,6 @@
-﻿namespace TicketSalesPlatform.Payments.Api.Extensions
+using SharedKernel.Extensions;
+
+namespace TicketSalesPlatform.Payments.Api.Extensions
 {
     public static class SecurityExtensions
     {
@@ -8,24 +10,7 @@
             IWebHostEnvironment environment
         )
         {
-            services
-                .AddAuthentication("Bearer")
-                .AddJwtBearer(
-                    "Bearer",
-                    options =>
-                    {
-                        options.Authority = configuration["Authentication:Authority"];
-                        options.Audience = "payments";
-
-                        if (environment.IsDevelopment())
-                        {
-                            options.RequireHttpsMetadata = false;
-                        }
-                    }
-                );
-
-            services.AddAuthorization();
-
+            services.AddCustomAuthenticationAndAuthorization(configuration, environment, "payments");
             return services;
         }
     }

@@ -2,13 +2,44 @@ global:
   scrape_interval: 5s
 
 scrape_configs:
-  - job_name: "ticket-sales-platform-microservices"
+  - job_name: "apigateway"
     static_configs:
-      - targets:
-          - "ticketsalesplatform.apigateway:8080"
-          - "ticketsalesplatform.events.api:8080"
-          - "ticketsalesplatform.orders.api:8080"
-          - "ticketsalesplatform.inventory.api:8080"
-          - "ticketsalesplatform.payment.api:8080"
-          - "ticketsalesplatform.identity.api:8080"
-          - "ticketsalesplatform.notifications.api:8080"
+      - targets: ["ticketsalesplatform.apigateway:8080"]
+        labels:
+          application: "apigateway"
+
+  - job_name: "events-api"
+    static_configs:
+      - targets: ["ticketsalesplatform.events.api:8080"]
+        labels:
+          application: "events-api"
+
+  - job_name: "orders-api"
+    static_configs:
+      - targets: ["ticketsalesplatform.orders.api:8080"]
+        labels:
+          application: "orders-api"
+
+  - job_name: "inventory-api"
+    static_configs:
+      - targets: ["ticketsalesplatform.inventory.api:8080"]
+        labels:
+          application: "inventory-api"
+
+  - job_name: "payment-api"
+    static_configs:
+      - targets: ["ticketsalesplatform.payment.api:8080"]
+        labels:
+          application: "payment-api"
+
+  - job_name: "keycloak"
+    static_configs:
+      - targets: ["keycloak:9000"]
+        labels:
+          application: "keycloak"
+
+  - job_name: "notifications-api"
+    static_configs:
+      - targets: ["ticketsalesplatform.notifications.api:8080"]
+        labels:
+          application: "notifications-api"

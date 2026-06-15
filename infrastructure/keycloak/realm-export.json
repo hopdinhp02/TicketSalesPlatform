@@ -1,0 +1,116 @@
+{
+  "id": "TicketSales",
+  "realm": "TicketSales",
+  "enabled": true,
+  "roles": {
+    "realm": [
+      {
+        "name": "Admin",
+        "description": "Administrator Role"
+      },
+      {
+        "name": "Organizer",
+        "description": "Organizer Role"
+      },
+      {
+        "name": "Customer",
+        "description": "Customer Role"
+      }
+    ]
+  },
+  "groups": [],
+  "clients": [
+    {
+      "clientId": "ticket-platform",
+      "enabled": true,
+      "publicClient": true,
+      "directAccessGrantsEnabled": true,
+      "standardFlowEnabled": true,
+      "webOrigins": [
+        "*"
+      ],
+      "redirectUris": [
+        "*"
+      ],
+      "defaultClientScopes": [
+        "web-origins",
+        "role_list",
+        "roles",
+        "profile",
+        "email",
+        "basic",
+        "acr"
+      ],
+      "protocolMappers": [
+        {
+          "name": "realm roles",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-realm-role-mapper",
+          "consentRequired": false,
+          "config": {
+            "multivalued": "true",
+            "userinfo.token.claim": "true",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "claim.name": "role",
+            "jsonType.label": "String"
+          }
+        }
+      ]
+    }
+  ],
+  "users": [
+    {
+      "username": "admin_user",
+      "enabled": true,
+      "email": "admin@ticketplatform.com",
+      "firstName": "Admin",
+      "lastName": "User",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "password",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "Admin"
+      ]
+    },
+    {
+      "username": "organizer_user",
+      "enabled": true,
+      "email": "organizer@ticketplatform.com",
+      "firstName": "Organizer",
+      "lastName": "User",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "password",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "Organizer"
+      ]
+    },
+    {
+      "username": "customer_user",
+      "enabled": true,
+      "id": "a9cde842-1234-5678-abcd-ef1234567890",
+      "email": "customer@ticketplatform.com",
+      "firstName": "Customer",
+      "lastName": "User",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "password",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "Customer"
+      ]
+    }
+  ]
+}

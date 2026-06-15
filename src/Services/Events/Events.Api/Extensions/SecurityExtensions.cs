@@ -1,4 +1,6 @@
-﻿namespace TicketSalesPlatform.Events.Api.Extensions
+using SharedKernel.Extensions;
+
+namespace TicketSalesPlatform.Events.Api.Extensions
 {
     public static class SecurityExtensions
     {
@@ -8,23 +10,7 @@
             IWebHostEnvironment env
         )
         {
-            services
-                .AddAuthentication("Bearer")
-                .AddJwtBearer(
-                    "Bearer",
-                    options =>
-                    {
-                        options.Authority = config["Authentication:Authority"];
-                        options.Audience = "events";
-
-                        if (env.IsDevelopment())
-                        {
-                            options.RequireHttpsMetadata = false;
-                        }
-                    }
-                );
-
-            services.AddAuthorization();
+            services.AddCustomAuthenticationAndAuthorization(config, env, "events");
             return services;
         }
     }

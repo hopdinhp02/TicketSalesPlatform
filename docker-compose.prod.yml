@@ -32,11 +32,11 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:8080
-      - Authentication__Authority=http://ticketsalesplatform.identity.api:8080
+      - Authentication__Authority=http://keycloak:8080/realms/TicketSales
     depends_on:
       - ticketsalesplatform.events.api
       - ticketsalesplatform.orders.api
-      - ticketsalesplatform.identity.api
+      - keycloak
       - ticketsalesplatform.inventory.api
       - ticketsalesplatform.payment.api
 
@@ -49,11 +49,11 @@ services:
       - ASPNETCORE_URLS=http://+:8080
       - ConnectionStrings__Database=Host=postgres-shared;Port=5432;Database=event_db;Username=user;Password=password
       - ConnectionStrings__Redis=redis:6379
-      - Authentication__Authority=http://ticketsalesplatform.identity.api:8080
+      - Authentication__Authority=http://keycloak:8080/realms/TicketSales
       - MessageBroker__Host=rabbitmq
     depends_on:
       - postgres-shared
-      - ticketsalesplatform.identity.api
+      - keycloak
       - rabbitmq
 
   ticketsalesplatform.orders.api:
@@ -64,14 +64,14 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:8080
       - ConnectionStrings__Database=Host=postgres-shared;Port=5432;Database=order_db;Username=user;Password=password
-      - Authentication__Authority=http://ticketsalesplatform.identity.api:8080
+      - Authentication__Authority=http://keycloak:8080/realms/TicketSales
       - MessageBroker__Host=rabbitmq
       - Services__EventsApiUrl=http://ticketsalesplatform.events.api:8080
       - Services__InventoryApiUrl=http://ticketsalesplatform.inventory.api:8080 
     depends_on:
       - postgres-shared
       - rabbitmq
-      - ticketsalesplatform.identity.api
+      - keycloak
       - ticketsalesplatform.inventory.api
 
   ticketsalesplatform.inventory.api:
@@ -82,12 +82,12 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:8080
       - ConnectionStrings__Database=Host=postgres-shared;Port=5432;Database=inventory_db;Username=user;Password=password
-      - Authentication__Authority=http://ticketsalesplatform.identity.api:8080
+      - Authentication__Authority=http://keycloak:8080/realms/TicketSales
       - MessageBroker__Host=rabbitmq
     depends_on:
       - postgres-shared
       - rabbitmq
-      - ticketsalesplatform.identity.api
+      - keycloak
 
   ticketsalesplatform.payment.api:
     image: hopdinhp02/ticketsales-paymentsapi:latest
@@ -97,24 +97,27 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:8080
       - ConnectionStrings__Database=Host=postgres-shared;Port=5432;Database=payment_db;Username=user;Password=password
-      - Authentication__Authority=http://ticketsalesplatform.identity.api:8080
+      - Authentication__Authority=http://keycloak:8080/realms/TicketSales
       - MessageBroker__Host=rabbitmq
       - Services__OrderApiUrl=http://ticketsalesplatform.orders.api:8080
     depends_on:
       - postgres-shared
       - rabbitmq
-      - ticketsalesplatform.identity.api
+      - keycloak
 
-  ticketsalesplatform.identity.api:
-    image: hopdinhp02/ticketsales-identityapi:latest
+  keycloak:
+    image: quay.io/keycloak/keycloak:latest
+    container_name: keycloak-prod
+    command: start-dev --import-realm --metrics-enabled=true --http-metrics-histograms-enabled=true
     ports:
       - "5001:8080"
+      - "5002:9000"
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      - ASPNETCORE_URLS=http://+:8080
-      - IdentityServer__IssuerUri=http://ticketsalesplatform.identity.api:8080
+      - KEYCLOAK_ADMIN=admin
+      - KEYCLOAK_ADMIN_PASSWORD=admin
+      - KC_DB=dev-file
     volumes:
-      - identity_keys:/app/keys
+      - ./infrastructure/keycloak/realm-export.json:/opt/keycloak/data/import/realm.json:ro
       
   ticketsalesplatform.notifications.api:
     image: hopdinhp02/ticketsales-notificationsapi:latest
@@ -129,4 +132,3 @@ services:
 
 volumes:
   postgres_shared_data:
-  identity_keys:

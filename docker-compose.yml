@@ -88,6 +88,9 @@ services:
     container_name: grafana
     ports:
       - "3000:3000"
+    volumes:
+      - ./infrastructure/grafana/provisioning/datasources/datasource.yml:/etc/grafana/provisioning/datasources/datasource.yml:ro
+      - ./infrastructure/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards:ro
     depends_on:
       - prometheus
 
@@ -108,13 +111,13 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:8080
-      - Authentication__Authority=http://ticketsalesplatform.identity.api:8080
+      - Authentication__Authority=http://keycloak:8080/realms/TicketSales
       - OpenTelemetry__Endpoint=http://jaeger:4317
       - Serilog__SeqServerUrl=http://seq:5341
     depends_on:
       - ticketsalesplatform.events.api
       - ticketsalesplatform.orders.api
-      - ticketsalesplatform.identity.api
+      - keycloak
       - ticketsalesplatform.inventory.api
       - ticketsalesplatform.payment.api
 
@@ -130,7 +133,7 @@ services:
       - ASPNETCORE_URLS=http://+:8080
       - ConnectionStrings__Database=Host=event-db;Port=5432;Database=event_db;Username=user;Password=password
       - ConnectionStrings__Redis=redis:6379
-      - Authentication__Authority=http://ticketsalesplatform.identity.api:8080
+      - Authentication__Authority=http://keycloak:8080/realms/TicketSales
       - MessageBroker__Host=rabbitmq
       - OpenTelemetry__Endpoint=http://jaeger:4317
       - Serilog__SeqServerUrl=http://seq:5341
@@ -140,7 +143,7 @@ services:
           - events-api
     depends_on:
       - event-db
-      - ticketsalesplatform.identity.api
+      - keycloak
       - rabbitmq
 
   ticketsalesplatform.orders.api:
@@ -154,7 +157,7 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:8080
       - ConnectionStrings__Database=Host=order-db;Port=5432;Database=order_db;Username=user;Password=password
-      - Authentication__Authority=http://ticketsalesplatform.identity.api:8080
+      - Authentication__Authority=http://keycloak:8080/realms/TicketSales
       - MessageBroker__Host=rabbitmq
       - Services__EventsApiUrl=http://ticketsalesplatform.events.api:8080
       - Services__InventoryApiUrl=http://ticketsalesplatform.inventory.api:8080 
@@ -167,7 +170,7 @@ services:
     depends_on:
       - order-db
       - rabbitmq
-      - ticketsalesplatform.identity.api
+      - keycloak
       - ticketsalesplatform.inventory.api
 
   ticketsalesplatform.inventory.api:
@@ -181,7 +184,7 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:8080
       - ConnectionStrings__Database=Host=inventory-db;Port=5432;Database=inventory_db;Username=user;Password=password
-      - Authentication__Authority=http://ticketsalesplatform.identity.api:8080
+      - Authentication__Authority=http://keycloak:8080/realms/TicketSales
       - MessageBroker__Host=rabbitmq
       - OpenTelemetry__Endpoint=http://jaeger:4317
       - Serilog__SeqServerUrl=http://seq:5341
@@ -192,7 +195,7 @@ services:
     depends_on:
       - inventory-db
       - rabbitmq
-      - ticketsalesplatform.identity.api
+      - keycloak
 
   ticketsalesplatform.payment.api:
     image: ${DOCKER_REGISTRY-}ticketsalesplatformpaymentapi
@@ -205,7 +208,7 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:8080
       - ConnectionStrings__Database=Host=payment-db;Port=5432;Database=payment_db;Username=user;Password=password
-      - Authentication__Authority=http://ticketsalesplatform.identity.api:8080
+      - Authentication__Authority=http://keycloak:8080/realms/TicketSales
       - MessageBroker__Host=rabbitmq
       - Services__OrderApiUrl=http://ticketsalesplatform.orders.api:8080
       - OpenTelemetry__Endpoint=http://jaeger:4317
@@ -217,23 +220,21 @@ services:
     depends_on:
       - payment-db
       - rabbitmq
-      - ticketsalesplatform.identity.api
+      - keycloak
 
-  ticketsalesplatform.identity.api:
-    image: ${DOCKER_REGISTRY-}ticketsalesplatformidentityapi
-    build:
-      context: .
-      dockerfile: src/Services/Identity/Identity.Api/Dockerfile
+  keycloak:
+    image: quay.io/keycloak/keycloak:latest
+    container_name: keycloak
+    command: start-dev --import-realm --metrics-enabled=true --http-metrics-histograms-enabled=true
     ports:
       - "5001:8080"
+      - "5002:9000"
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      - ASPNETCORE_URLS=http://+:8080
-      - IdentityServer__IssuerUri=http://ticketsalesplatform.identity.api:8080
-      - OpenTelemetry__Endpoint=http://jaeger:4317
-      - Serilog__SeqServerUrl=http://seq:5341
+      - KEYCLOAK_ADMIN=admin
+      - KEYCLOAK_ADMIN_PASSWORD=admin
+      - KC_DB=dev-file
     volumes:
-      - identity_keys:/app/keys
+      - ./infrastructure/keycloak/realm-export.json:/opt/keycloak/data/import/realm.json:ro
      
   ticketsalesplatform.notifications.api:
     image: ${DOCKER_REGISTRY-}ticketsalesplatformnotificationsapi
@@ -253,7 +254,6 @@ services:
 
 volumes:
   postgres_data:
-  identity_keys:
   inventory_data:
   payment_data:  
   event_data:

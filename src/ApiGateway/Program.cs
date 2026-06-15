@@ -24,6 +24,7 @@ builder
             options.TokenValidationParameters = new TokenValidationParameters
             {
                 ValidateAudience = false,
+                ValidateIssuer = false,
             };
             if (builder.Environment.IsDevelopment())
             {

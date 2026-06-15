@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 using TicketSalesPlatform.Events.Application.CreateEvent;
 using TicketSalesPlatform.Events.Application.GetEventById;
 using TicketSalesPlatform.Events.Application.GetTicketTypeById;
@@ -10,17 +10,20 @@ namespace TicketSalesPlatform.Events.Api.Endpoints
     {
         public static void MapEventEndpoints(this WebApplication app)
         {
-            var group = app.MapGroup("/api/events").WithTags("Events").RequireAuthorization();
+            var group = app.MapGroup("/api/events").WithTags("Events");
 
-            group.MapPost("/", CreateEvent).WithName("CreateEvent");
+            group.MapPost("/", CreateEvent)
+                .RequireAuthorization("RequireOrganizerRole")
+                .WithName("CreateEvent");
 
             group.MapGet("/{id:guid}", GetEventById).WithName("GetEventById");
 
-            group.MapPost("/{id:guid}/publish", PublishEvent).WithName("PublishEvent");
+            group.MapPost("/{id:guid}/publish", PublishEvent)
+                .RequireAuthorization("RequireOrganizerRole")
+                .WithName("PublishEvent");
 
             app.MapGet("/api/events/ticket-types/{ticketTypeId:guid}", GetTicketTypeById)
                 .WithTags("TicketTypes")
-                .RequireAuthorization()
                 .WithName("GetTicketTypeById");
         }
 
