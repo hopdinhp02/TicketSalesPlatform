@@ -15,7 +15,12 @@ namespace TicketSalesPlatform.Inventory.Api.Data
         {
             base.OnModelCreating(modelBuilder);
 
-            modelBuilder.Entity<Seat>().Property(s => s.Version).IsRowVersion();
+            modelBuilder.Entity<Seat>(entity =>
+            {
+                entity.Property(s => s.Version).IsRowVersion();
+                entity.HasIndex(s => s.OrderId);
+                entity.HasIndex(s => new { s.TicketTypeId, s.Status, s.SeatNo });
+            });
 
             modelBuilder.AddInboxStateEntity();
             modelBuilder.AddOutboxMessageEntity();
