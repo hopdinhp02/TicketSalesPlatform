@@ -72,6 +72,8 @@ public class ReserveStockConsumer : IConsumer<ReserveStockCommand>
                         seatsToReserve.Count
                     );
 
+                    _dbContext.ChangeTracker.Clear();
+
                     await context.Publish(
                         new OrderReservationFailedIntegrationEvent(
                             message.OrderId,
