@@ -1,4 +1,5 @@
-﻿using MassTransit;
+using MassTransit;
+using StackExchange.Redis;
 using TicketSalesPlatform.Contracts.Events;
 using TicketSalesPlatform.Inventory.Api.Data;
 using TicketSalesPlatform.Inventory.Api.Entities;
@@ -8,14 +9,17 @@ namespace TicketSalesPlatform.Inventory.Api.Consumers
     public class TicketTypeAddedConsumer : IConsumer<TicketTypeAddedIntegrationEvent>
     {
         private readonly InventoryDbContext _dbContext;
+        private readonly IConnectionMultiplexer _redis;
         private readonly ILogger<TicketTypeAddedConsumer> _logger;
 
         public TicketTypeAddedConsumer(
             InventoryDbContext dbContext,
+            IConnectionMultiplexer redis,
             ILogger<TicketTypeAddedConsumer> logger
         )
         {
             _dbContext = dbContext;
+            _redis = redis;
             _logger = logger;
         }
 
@@ -38,7 +42,11 @@ namespace TicketSalesPlatform.Inventory.Api.Consumers
             await _dbContext.Seats.AddRangeAsync(seats);
             await _dbContext.SaveChangesAsync();
 
-            _logger.LogInformation("Created {Count} seats in Inventory.", seats.Count);
+            // Seed Redis stock counter
+            var redisDb = _redis.GetDatabase();
+            await redisDb.StringSetAsync($"inventory:tickettype:{msg.TicketTypeId}:available", msg.Quantity);
+
+            _logger.LogInformation("Created {Count} seats in Inventory and seeded Redis counter.", seats.Count);
         }
     }
 }

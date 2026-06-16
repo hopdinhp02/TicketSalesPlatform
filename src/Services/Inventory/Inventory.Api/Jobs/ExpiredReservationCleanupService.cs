@@ -1,5 +1,6 @@
-﻿using MassTransit;
+using MassTransit;
 using Microsoft.EntityFrameworkCore;
+using StackExchange.Redis;
 using TicketSalesPlatform.Contracts.Events;
 using TicketSalesPlatform.Inventory.Api.Data;
 using TicketSalesPlatform.Inventory.Api.Entities;
@@ -10,14 +11,17 @@ namespace TicketSalesPlatform.Inventory.Api.Jobs
     {
         private readonly ILogger<ExpiredReservationCleanupService> _logger;
         private readonly IServiceProvider _serviceProvider;
+        private readonly IConnectionMultiplexer _redis;
 
         public ExpiredReservationCleanupService(
             ILogger<ExpiredReservationCleanupService> logger,
-            IServiceProvider serviceProvider
+            IServiceProvider serviceProvider,
+            IConnectionMultiplexer redis
         )
         {
             _logger = logger;
             _serviceProvider = serviceProvider;
+            _redis = redis;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -59,6 +63,8 @@ namespace TicketSalesPlatform.Inventory.Api.Jobs
                 expiredOrderIds.Count
             );
 
+            var redisDb = _redis.GetDatabase();
+
             foreach (var orderId in expiredOrderIds)
             {
                 if (orderId == null)
@@ -78,8 +84,16 @@ namespace TicketSalesPlatform.Inventory.Api.Jobs
                     stoppingToken
                 );
 
+                // Increment Redis counter back for released seats
+                var releasedGroups = seats.GroupBy(s => s.TicketTypeId);
+                foreach (var group in releasedGroups)
+                {
+                    var redisKey = $"inventory:tickettype:{group.Key}:available";
+                    await redisDb.StringIncrementAsync(redisKey, group.Count());
+                }
+
                 _logger.LogInformation(
-                    "Expired reservation for Order {OrderId}. Released {SeatCount} seats.",
+                    "Expired reservation for Order {OrderId}. Released {SeatCount} seats and returned to Redis.",
                     orderId,
                     seats.Count
                 );

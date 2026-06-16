@@ -1,5 +1,6 @@
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
+using StackExchange.Redis;
 using TicketSalesPlatform.Contracts.Commands;
 using TicketSalesPlatform.Contracts.Events;
 using TicketSalesPlatform.Inventory.Api.Data;
@@ -9,16 +10,19 @@ public class ReserveStockConsumer : IConsumer<ReserveStockCommand>
 {
     private readonly ILogger<ReserveStockConsumer> _logger;
     private readonly InventoryDbContext _dbContext;
+    private readonly IConnectionMultiplexer _redis;
 
-    public ReserveStockConsumer(ILogger<ReserveStockConsumer> logger, InventoryDbContext dbContext)
+    public ReserveStockConsumer(ILogger<ReserveStockConsumer> logger, InventoryDbContext dbContext, IConnectionMultiplexer redis)
     {
         _logger = logger;
         _dbContext = dbContext;
+        _redis = redis;
     }
 
     public async Task Consume(ConsumeContext<ReserveStockCommand> context)
     {
         var message = context.Message;
+        var redisDb = _redis.GetDatabase();
 
         // IDEMPOTENCY CHECK
         bool alreadyReserved = await _dbContext.Seats.AnyAsync(s => s.OrderId == message.OrderId);
@@ -34,10 +38,12 @@ public class ReserveStockConsumer : IConsumer<ReserveStockCommand>
             return;
         }
 
+        var itemsToRollback = message.Items?.Select(item => (item.TicketTypeId, item.Quantity)).ToList() ?? new List<(Guid, int)>();
+
         try
         {
             _logger.LogInformation(
-                "Inventory: Allocating seats for Order {OrderId}...",
+                "Inventory: Allocating seats for Order {OrderId} in PostgreSQL...",
                 message.OrderId
             );
 
@@ -47,45 +53,30 @@ public class ReserveStockConsumer : IConsumer<ReserveStockCommand>
                 return;
             }
 
+            // 1. POSTGRES BULK UPDATE
             foreach (var item in message.Items)
             {
-                var seatsToReserve = await _dbContext
-                    .Seats.FromSqlRaw(
-                        $@"
-                        SELECT *, xmin FROM ""Seats""
-                        WHERE ""TicketTypeId"" = {{0}} AND ""Status"" = {{1}}
-                        ORDER BY ""SeatNo""
-                        LIMIT {{2}}
-                        FOR UPDATE SKIP LOCKED",
-                        item.TicketTypeId,
-                        (int)SeatStatus.Available,
-                        item.Quantity
-                    )
-                    .ToListAsync();
+                var rowsUpdated = await _dbContext.Database.ExecuteSqlRawAsync(
+                    @"UPDATE ""Seats"" 
+                      SET ""Status"" = 1, ""UserId"" = {0}, ""OrderId"" = {1}, ""ReservationExpiresAt"" = {2}
+                      WHERE ""Id"" IN (
+                          SELECT ""Id"" FROM ""Seats""
+                          WHERE ""TicketTypeId"" = {3} AND ""Status"" = {4}
+                          ORDER BY ""SeatNo""
+                          LIMIT {5}
+                          FOR UPDATE SKIP LOCKED
+                      )",
+                    message.CustomerId,
+                    message.OrderId,
+                    DateTime.UtcNow.AddMinutes(15),
+                    item.TicketTypeId,
+                    (int)SeatStatus.Available,
+                    item.Quantity
+                );
 
-                if (seatsToReserve.Count < item.Quantity)
+                if (rowsUpdated < item.Quantity)
                 {
-                    _logger.LogError(
-                        "OUT OF STOCK: Order {OrderId} requested {Qty}, found {Found}.",
-                        message.OrderId,
-                        item.Quantity,
-                        seatsToReserve.Count
-                    );
-
-                    _dbContext.ChangeTracker.Clear();
-
-                    await context.Publish(
-                        new OrderReservationFailedIntegrationEvent(
-                            message.OrderId,
-                            $"Out of stock for TicketType {item.TicketTypeId}"
-                        )
-                    );
-                    return;
-                }
-
-                foreach (var seat in seatsToReserve)
-                {
-                    seat.Reserve(message.CustomerId, message.OrderId);
+                    throw new InvalidOperationException($"Postgres seat assignment mismatch. Expected: {item.Quantity}, Updated: {rowsUpdated}");
                 }
             }
 
@@ -100,6 +91,13 @@ public class ReserveStockConsumer : IConsumer<ReserveStockCommand>
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error reserving stock for Order {OrderId}", message.OrderId);
+            
+            // Rollback Redis decrements on exception
+            foreach (var item in itemsToRollback)
+            {
+                await redisDb.StringIncrementAsync($"inventory:tickettype:{item.TicketTypeId}:available", item.Quantity);
+            }
+            
             throw;
         }
     }

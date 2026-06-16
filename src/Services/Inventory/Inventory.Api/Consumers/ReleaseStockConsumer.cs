@@ -1,5 +1,6 @@
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
+using StackExchange.Redis;
 using TicketSalesPlatform.Contracts.Commands;
 using TicketSalesPlatform.Inventory.Api.Data;
 
@@ -8,14 +9,17 @@ namespace TicketSalesPlatform.Inventory.Api.Consumers
     public class ReleaseStockConsumer : IConsumer<ReleaseStockCommand>
     {
         private readonly InventoryDbContext _dbContext;
+        private readonly IConnectionMultiplexer _redis;
         private readonly ILogger<ReleaseStockConsumer> _logger;
 
         public ReleaseStockConsumer(
             InventoryDbContext dbContext,
+            IConnectionMultiplexer redis,
             ILogger<ReleaseStockConsumer> logger
         )
         {
             _dbContext = dbContext;
+            _redis = redis;
             _logger = logger;
         }
 
@@ -50,8 +54,18 @@ namespace TicketSalesPlatform.Inventory.Api.Consumers
 
                 await _dbContext.SaveChangesAsync();
 
+                // Increment Redis counter
+                var redisDb = _redis.GetDatabase();
+                var releasedGroups = seats.GroupBy(s => s.TicketTypeId);
+
+                foreach (var group in releasedGroups)
+                {
+                    var redisKey = $"inventory:tickettype:{group.Key}:available";
+                    await redisDb.StringIncrementAsync(redisKey, group.Count());
+                }
+
                 _logger.LogInformation(
-                    "Inventory: Successfully CANCELLED reservation for {Count} seats of Order {OrderId}.",
+                    "Inventory: Successfully CANCELLED reservation for {Count} seats of Order {OrderId} and returned to Redis counter.",
                     seats.Count,
                     message.OrderId
                 );

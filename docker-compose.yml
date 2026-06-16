@@ -62,6 +62,11 @@ services:
     ports:
       - "16686:16686"
       - "4317:4317"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 512M
 
   seq:
     image: datalust/seq:latest
@@ -74,6 +79,11 @@ services:
       - "8091:80"
     volumes:
       - ./seq-data:/data
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 512M
 
   prometheus:
     image: prom/prometheus:latest
@@ -157,6 +167,7 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:8080
       - ConnectionStrings__Database=Host=order-db;Port=5432;Database=order_db;Username=user;Password=password
+      - ConnectionStrings__Redis=redis:6379
       - Authentication__Authority=http://keycloak:8080/realms/TicketSales
       - MessageBroker__Host=rabbitmq
       - Services__EventsApiUrl=http://ticketsalesplatform.events.api:8080
@@ -184,6 +195,7 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:8080
       - ConnectionStrings__Database=Host=inventory-db;Port=5432;Database=inventory_db;Username=user;Password=password
+      - ConnectionStrings__Redis=redis:6379
       - Authentication__Authority=http://keycloak:8080/realms/TicketSales
       - MessageBroker__Host=rabbitmq
       - OpenTelemetry__Endpoint=http://jaeger:4317

@@ -1,6 +1,7 @@
-﻿using MediatR;
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using StackExchange.Redis;
 using TicketSalesPlatform.Inventory.Api.Data;
 using TicketSalesPlatform.Inventory.Api.Entities;
 
@@ -135,12 +136,24 @@ namespace TicketSalesPlatform.Inventory.Api.Endpoints
 
         public static async Task<IResult> GetInventoryAvailability(
             Guid ticketTypeId,
+            [FromServices] IConnectionMultiplexer redis,
             InventoryDbContext db
         )
         {
-            var count = await db.Seats.CountAsync(s =>
-                s.TicketTypeId == ticketTypeId && s.Status == SeatStatus.Available
-            );
+            var redisDb = redis.GetDatabase();
+            var countVal = await redisDb.StringGetAsync($"inventory:tickettype:{ticketTypeId}:available");
+
+            int count;
+            if (countVal.HasValue)
+            {
+                count = (int)countVal;
+            }
+            else
+            {
+                count = await db.Seats.CountAsync(s =>
+                    s.TicketTypeId == ticketTypeId && s.Status == SeatStatus.Available
+                );
+            }
 
             return Results.Ok(new { TicketTypeId = ticketTypeId, AvailableQuantity = count });
         }

@@ -1,5 +1,6 @@
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
+using StackExchange.Redis;
 using TicketSalesPlatform.Inventory.Api.Data;
 using TicketSalesPlatform.Inventory.Api.Jobs;
 
@@ -18,6 +19,12 @@ namespace TicketSalesPlatform.Inventory.Api.Extensions
                 options.UseNpgsql(connectionString)
             );
 
+            services.AddSingleton<IConnectionMultiplexer>(sp =>
+            {
+                var redisConn = configuration.GetConnectionString("Redis") ?? "localhost:6379";
+                return ConnectionMultiplexer.Connect(redisConn);
+            });
+
             services.AddMassTransit(x =>
             {
                 x.SetEndpointNameFormatter(new KebabCaseEndpointNameFormatter("inventory", false));
@@ -35,6 +42,8 @@ namespace TicketSalesPlatform.Inventory.Api.Extensions
                     (context, name, cfg) =>
                     {
                         cfg.UseEntityFrameworkOutbox<InventoryDbContext>(context);
+                        cfg.ConcurrentMessageLimit = 64;
+                        cfg.PrefetchCount = 128;
                     }
                 );
 

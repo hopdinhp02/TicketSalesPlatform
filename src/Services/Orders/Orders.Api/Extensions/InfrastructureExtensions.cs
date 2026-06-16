@@ -9,6 +9,8 @@ using TicketSalesPlatform.Orders.Infrastructure.Persistence;
 using TicketSalesPlatform.Orders.Infrastructure.Projections;
 using TicketSalesPlatform.Orders.Api.Options;
 using TicketSalesPlatform.Contracts.Commands;
+using StackExchange.Redis;
+using Order = TicketSalesPlatform.Orders.Domain.Aggregates.Order;
 
 namespace TicketSalesPlatform.Orders.Api.Extensions
 {
@@ -42,6 +44,12 @@ namespace TicketSalesPlatform.Orders.Api.Extensions
                 .UseLightweightSessions()
                 .AddAsyncDaemon(DaemonMode.Solo);
 
+            services.AddSingleton<IConnectionMultiplexer>(sp =>
+            {
+                var redisConn = configuration.GetConnectionString("Redis") ?? "localhost:6379";
+                return ConnectionMultiplexer.Connect(redisConn);
+            });
+
             services.AddMassTransit(x =>
             {
                 x.SetEndpointNameFormatter(new KebabCaseEndpointNameFormatter("order", false));
@@ -49,6 +57,14 @@ namespace TicketSalesPlatform.Orders.Api.Extensions
                 x.AddSagaStateMachine<OrderStateMachine, OrderState>().MartenRepository();
 
                 x.AddConsumers(TicketSalesPlatform.Orders.Application.AssemblyReference.Assembly);
+
+                x.AddConfigureEndpointsCallback(
+                    (context, name, cfg) =>
+                    {
+                        cfg.ConcurrentMessageLimit = 64;
+                        cfg.PrefetchCount = 128;
+                    }
+                );
 
                 x.UsingRabbitMq(
                     (context, cfg) =>
