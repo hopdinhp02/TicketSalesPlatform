@@ -5,6 +5,7 @@ using TicketSalesPlatform.Contracts.Commands;
 using TicketSalesPlatform.Contracts.Events;
 using TicketSalesPlatform.Inventory.Api.Data;
 using TicketSalesPlatform.Inventory.Api.Entities;
+using Npgsql;
 
 public class ReserveStockConsumer : IConsumer<ReserveStockCommand>
 {
@@ -53,25 +54,27 @@ public class ReserveStockConsumer : IConsumer<ReserveStockCommand>
                 return;
             }
 
-            // 1. POSTGRES BULK UPDATE
             foreach (var item in message.Items)
             {
                 var rowsUpdated = await _dbContext.Database.ExecuteSqlRawAsync(
-                    @"UPDATE ""Seats"" 
-                      SET ""Status"" = 1, ""UserId"" = {0}, ""OrderId"" = {1}, ""ReservationExpiresAt"" = {2}
-                      WHERE ""Id"" IN (
+                    @"WITH sel AS (
                           SELECT ""Id"" FROM ""Seats""
-                          WHERE ""TicketTypeId"" = {3} AND ""Status"" = {4}
+                          WHERE ""TicketTypeId"" = @ticketTypeId AND ""Status"" = @availableStatus
                           ORDER BY ""SeatNo""
-                          LIMIT {5}
+                          LIMIT @quantity
                           FOR UPDATE SKIP LOCKED
-                      )",
-                    message.CustomerId,
-                    message.OrderId,
-                    DateTime.UtcNow.AddMinutes(15),
-                    item.TicketTypeId,
-                    (int)SeatStatus.Available,
-                    item.Quantity
+                      )
+                      UPDATE ""Seats"" 
+                      SET ""Status"" = @reservedStatus, ""UserId"" = @userId, ""OrderId"" = @orderId, ""ReservationExpiresAt"" = @expiresAt
+                      FROM sel
+                      WHERE ""Seats"".""Id"" = sel.""Id""",
+                    new NpgsqlParameter("@userId", (object)message.CustomerId),
+                    new NpgsqlParameter("@orderId", (object)message.OrderId),
+                    new NpgsqlParameter("@expiresAt", (object)DateTime.UtcNow.AddMinutes(15)),
+                    new NpgsqlParameter("@ticketTypeId", (object)item.TicketTypeId),
+                    new NpgsqlParameter("@availableStatus", (object)(int)SeatStatus.Available),
+                    new NpgsqlParameter("@quantity", (object)item.Quantity),
+                    new NpgsqlParameter("@reservedStatus", (object)(int)SeatStatus.Reserved)
                 );
 
                 if (rowsUpdated < item.Quantity)
