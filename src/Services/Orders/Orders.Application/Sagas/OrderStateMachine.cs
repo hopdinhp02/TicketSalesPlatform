@@ -42,6 +42,8 @@ namespace TicketSalesPlatform.Orders.Application.Sagas
         {
             InstanceState(x => x.CurrentState);
 
+            OnUnhandledEvent(x => x.Ignore());
+
             Event(() => OrderPlacedEvent, x => x.CorrelateById(m => m.Message.OrderId));
             Event(() => StockReservedEvent, x => x.CorrelateById(m => m.Message.OrderId));
             Event(() => ReservationFailedEvent, x => x.CorrelateById(m => m.Message.OrderId));

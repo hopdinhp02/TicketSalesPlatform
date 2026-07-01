@@ -3,6 +3,8 @@ using StackExchange.Redis;
 using TicketSalesPlatform.Contracts.Events;
 using TicketSalesPlatform.Inventory.Api.Data;
 using TicketSalesPlatform.Inventory.Api.Entities;
+using Npgsql;
+using Microsoft.EntityFrameworkCore;
 
 namespace TicketSalesPlatform.Inventory.Api.Consumers
 {
@@ -27,26 +29,53 @@ namespace TicketSalesPlatform.Inventory.Api.Consumers
         {
             var msg = context.Message;
             _logger.LogInformation(
-                "Creating {Quantity} seats for TicketType {Name}...",
+                "Creating {Quantity} seats for TicketType {Name} using PostgreSQL binary COPY...",
                 msg.Quantity,
                 msg.Name
             );
 
-            var seats = new List<Seat>();
-
-            for (int i = 1; i <= msg.Quantity; i++)
+            bool seatsExist = await _dbContext.Seats.AnyAsync(s => s.TicketTypeId == msg.TicketTypeId);
+            if (seatsExist)
             {
-                seats.Add(new Seat($"{msg.Name}-{i}", msg.EventId, msg.TicketTypeId));
+                _logger.LogInformation(
+                    "Seats for TicketType {TicketTypeId} ({Name}) already exist. Skipping database insert.",
+                    msg.TicketTypeId,
+                    msg.Name
+                );
+            }
+            else
+            {
+                var connectionString = _dbContext.Database.GetConnectionString();
+                using var conn = new NpgsqlConnection(connectionString);
+                await conn.OpenAsync();
+
+                using (var writer = await conn.BeginBinaryImportAsync(
+                    "COPY \"Seats\" (\"Id\", \"SeatNo\", \"EventId\", \"TicketTypeId\", \"Status\", \"UserId\", \"OrderId\", \"ReservationExpiresAt\") FROM STDIN (FORMAT BINARY)"
+                ))
+                {
+                    for (int i = 1; i <= msg.Quantity; i++)
+                    {
+                        await writer.StartRowAsync();
+                        await writer.WriteAsync(Guid.NewGuid(), NpgsqlTypes.NpgsqlDbType.Uuid);
+                        await writer.WriteAsync($"{msg.Name}-{i}", NpgsqlTypes.NpgsqlDbType.Text);
+                        await writer.WriteAsync(msg.EventId, NpgsqlTypes.NpgsqlDbType.Uuid);
+                        await writer.WriteAsync(msg.TicketTypeId, NpgsqlTypes.NpgsqlDbType.Uuid);
+                        await writer.WriteAsync((int)SeatStatus.Available, NpgsqlTypes.NpgsqlDbType.Integer);
+                        await writer.WriteNullAsync();
+                        await writer.WriteNullAsync();
+                        await writer.WriteNullAsync();
+                    }
+
+                    await writer.CompleteAsync();
+                }
+
+                _logger.LogInformation("Created {Count} seats in PostgreSQL database.", msg.Quantity);
             }
 
-            await _dbContext.Seats.AddRangeAsync(seats);
-            await _dbContext.SaveChangesAsync();
-
-            // Seed Redis stock counter
             var redisDb = _redis.GetDatabase();
             await redisDb.StringSetAsync($"inventory:tickettype:{msg.TicketTypeId}:available", msg.Quantity);
 
-            _logger.LogInformation("Created {Count} seats in Inventory and seeded Redis counter.", seats.Count);
+            _logger.LogInformation("Successfully seeded Redis counter with {Count} available stock.", msg.Quantity);
         }
     }
 }

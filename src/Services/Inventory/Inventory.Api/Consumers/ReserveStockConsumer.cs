@@ -1,11 +1,11 @@
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 using StackExchange.Redis;
 using TicketSalesPlatform.Contracts.Commands;
 using TicketSalesPlatform.Contracts.Events;
 using TicketSalesPlatform.Inventory.Api.Data;
 using TicketSalesPlatform.Inventory.Api.Entities;
-using Npgsql;
 
 public class ReserveStockConsumer : IConsumer<ReserveStockCommand>
 {
@@ -13,7 +13,11 @@ public class ReserveStockConsumer : IConsumer<ReserveStockCommand>
     private readonly InventoryDbContext _dbContext;
     private readonly IConnectionMultiplexer _redis;
 
-    public ReserveStockConsumer(ILogger<ReserveStockConsumer> logger, InventoryDbContext dbContext, IConnectionMultiplexer redis)
+    public ReserveStockConsumer(
+        ILogger<ReserveStockConsumer> logger,
+        InventoryDbContext dbContext,
+        IConnectionMultiplexer redis
+    )
     {
         _logger = logger;
         _dbContext = dbContext;
@@ -25,7 +29,6 @@ public class ReserveStockConsumer : IConsumer<ReserveStockCommand>
         var message = context.Message;
         var redisDb = _redis.GetDatabase();
 
-        // IDEMPOTENCY CHECK
         bool alreadyReserved = await _dbContext.Seats.AnyAsync(s => s.OrderId == message.OrderId);
         if (alreadyReserved)
         {
@@ -38,8 +41,6 @@ public class ReserveStockConsumer : IConsumer<ReserveStockCommand>
             );
             return;
         }
-
-        var itemsToRollback = message.Items?.Select(item => (item.TicketTypeId, item.Quantity)).ToList() ?? new List<(Guid, int)>();
 
         try
         {
@@ -79,7 +80,9 @@ public class ReserveStockConsumer : IConsumer<ReserveStockCommand>
 
                 if (rowsUpdated < item.Quantity)
                 {
-                    throw new InvalidOperationException($"Postgres seat assignment mismatch. Expected: {item.Quantity}, Updated: {rowsUpdated}");
+                    throw new InvalidOperationException(
+                        $"Postgres seat assignment mismatch. Expected: {item.Quantity}, Updated: {rowsUpdated}"
+                    );
                 }
             }
 
@@ -93,14 +96,11 @@ public class ReserveStockConsumer : IConsumer<ReserveStockCommand>
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error reserving stock for Order {OrderId}", message.OrderId);
-            
-            // Rollback Redis decrements on exception
-            foreach (var item in itemsToRollback)
-            {
-                await redisDb.StringIncrementAsync($"inventory:tickettype:{item.TicketTypeId}:available", item.Quantity);
-            }
-            
+            _logger.LogError(
+                ex,
+                "Error reserving stock for Order {OrderId}. Rethrowing for retry/fault handling.",
+                message.OrderId
+            );
             throw;
         }
     }
