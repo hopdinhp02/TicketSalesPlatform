@@ -153,6 +153,7 @@ namespace TicketSalesPlatform.Inventory.Api.Endpoints
                 count = await db.Seats.CountAsync(s =>
                     s.TicketTypeId == ticketTypeId && s.Status == SeatStatus.Available
                 );
+                await redisDb.StringSetAsync($"inventory:tickettype:{ticketTypeId}:available", count, when: When.NotExists);
             }
 
             return Results.Ok(new { TicketTypeId = ticketTypeId, AvailableQuantity = count });

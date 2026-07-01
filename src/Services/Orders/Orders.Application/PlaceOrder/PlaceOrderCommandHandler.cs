@@ -14,6 +14,7 @@ namespace TicketSalesPlatform.Orders.Application.PlaceOrder
         private readonly IRepository<Order> _orderRepository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IEventsClient _eventsClient;
+        private readonly IInventoryClient _inventoryClient;
         private readonly IConnectionMultiplexer _redis;
         private readonly ILogger<PlaceOrderCommandHandler> _logger;
 
@@ -21,6 +22,7 @@ namespace TicketSalesPlatform.Orders.Application.PlaceOrder
             IRepository<Order> orderRepository,
             IUnitOfWork unitOfWork,
             IEventsClient eventsClient,
+            IInventoryClient inventoryClient,
             IConnectionMultiplexer redis,
             ILogger<PlaceOrderCommandHandler> logger
         )
@@ -28,6 +30,7 @@ namespace TicketSalesPlatform.Orders.Application.PlaceOrder
             _orderRepository = orderRepository;
             _unitOfWork = unitOfWork;
             _eventsClient = eventsClient;
+            _inventoryClient = inventoryClient;
             _redis = redis;
             _logger = logger;
         }
@@ -71,6 +74,25 @@ namespace TicketSalesPlatform.Orders.Application.PlaceOrder
             foreach (var item in request.Items)
             {
                 var redisKey = $"inventory:tickettype:{item.TicketTypeId}:available";
+
+                // Cache-aside fallback: if key is not in Redis, check and seed via Inventory API
+                var keyExists = await redisDb.KeyExistsAsync(redisKey);
+                if (!keyExists)
+                {
+                    var hasStock = await _inventoryClient.CheckStockAsync(
+                        item.TicketTypeId,
+                        item.Quantity,
+                        cancellationToken
+                    );
+
+                    if (!hasStock)
+                    {
+                        outOfStock = true;
+                        failedTicketTypeId = item.TicketTypeId.ToString();
+                        break;
+                    }
+                }
+
                 var remaining = await redisDb.StringDecrementAsync(redisKey, item.Quantity);
                 if (remaining < 0)
                 {
