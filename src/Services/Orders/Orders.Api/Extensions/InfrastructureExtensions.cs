@@ -41,6 +41,7 @@ namespace TicketSalesPlatform.Orders.Api.Extensions
 
                     options.Schema.For<OrderState>().Identity(x => x.CorrelationId);
                 })
+                .AddProjectionWithServices<IntegrationEventPublisherProjection>(ProjectionLifecycle.Async, ServiceLifetime.Singleton)
                 .UseLightweightSessions()
                 .AddAsyncDaemon(DaemonMode.Solo);
 
