@@ -1,4 +1,4 @@
-﻿using System.Net.Http.Json;
+using System.Net.Http.Json;
 using TicketSalesPlatform.Orders.Application.Clients;
 
 namespace TicketSalesPlatform.Orders.Infrastructure.Clients
@@ -33,6 +33,30 @@ namespace TicketSalesPlatform.Orders.Infrastructure.Clients
             catch (Exception ex)
             {
                 throw new Exception($"Error communicating with Event Service: {ex.Message}", ex);
+            }
+        }
+
+        public async Task<IEnumerable<TicketTypeDto>> GetTicketTypesBulkAsync(
+            IEnumerable<Guid> ticketTypeIds,
+            CancellationToken cancellationToken = default
+        )
+        {
+            try
+            {
+                var response = await _httpClient.PostAsJsonAsync(
+                    "api/events/ticket-types/batch",
+                    ticketTypeIds,
+                    cancellationToken
+                );
+
+                response.EnsureSuccessStatusCode();
+
+                var ticketTypes = await response.Content.ReadFromJsonAsync<IEnumerable<TicketTypeDto>>(cancellationToken: cancellationToken);
+                return ticketTypes ?? Array.Empty<TicketTypeDto>();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error communicating with Event Service bulk endpoint: {ex.Message}", ex);
             }
         }
     }

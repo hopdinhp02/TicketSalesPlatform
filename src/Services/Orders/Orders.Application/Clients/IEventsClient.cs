@@ -1,9 +1,14 @@
-﻿namespace TicketSalesPlatform.Orders.Application.Clients
+namespace TicketSalesPlatform.Orders.Application.Clients
 {
     public interface IEventsClient
     {
         Task<TicketTypeDto?> GetTicketTypeAsync(
             Guid ticketTypeId,
+            CancellationToken cancellationToken = default
+        );
+
+        Task<IEnumerable<TicketTypeDto>> GetTicketTypesBulkAsync(
+            IEnumerable<Guid> ticketTypeIds,
             CancellationToken cancellationToken = default
         );
     }

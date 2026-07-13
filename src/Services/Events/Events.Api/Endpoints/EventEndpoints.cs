@@ -12,19 +12,25 @@ namespace TicketSalesPlatform.Events.Api.Endpoints
         {
             var group = app.MapGroup("/api/events").WithTags("Events");
 
-            group.MapPost("/", CreateEvent)
+            group
+                .MapPost("/", CreateEvent)
                 .RequireAuthorization("RequireOrganizerRole")
                 .WithName("CreateEvent");
 
             group.MapGet("/{id:guid}", GetEventById).WithName("GetEventById");
 
-            group.MapPost("/{id:guid}/publish", PublishEvent)
+            group
+                .MapPost("/{id:guid}/publish", PublishEvent)
                 .RequireAuthorization("RequireOrganizerRole")
                 .WithName("PublishEvent");
 
             app.MapGet("/api/events/ticket-types/{ticketTypeId:guid}", GetTicketTypeById)
                 .WithTags("TicketTypes")
                 .WithName("GetTicketTypeById");
+
+            app.MapPost("/api/events/ticket-types/batch", GetTicketTypesBulk)
+                .WithTags("TicketTypes")
+                .WithName("GetTicketTypesBulk");
         }
 
         private static async Task<IResult> CreateEvent(
@@ -48,6 +54,19 @@ namespace TicketSalesPlatform.Events.Api.Endpoints
             var query = new GetTicketTypeByIdQuery(ticketTypeId);
             var result = await mediator.Send(query);
             return result is not null ? Results.Ok(result) : Results.NotFound();
+        }
+
+        private static async Task<IResult> GetTicketTypesBulk(
+            [Microsoft.AspNetCore.Mvc.FromBody] IEnumerable<Guid> ticketTypeIds,
+            IMediator mediator
+        )
+        {
+            var query =
+                new TicketSalesPlatform.Events.Application.GetTicketTypesBulk.GetTicketTypesBulkQuery(
+                    ticketTypeIds
+                );
+            var result = await mediator.Send(query);
+            return Results.Ok(result);
         }
 
         private static async Task<IResult> PublishEvent(Guid id, ISender sender)

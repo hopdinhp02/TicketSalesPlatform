@@ -1,4 +1,4 @@
-﻿using Marten;
+using Marten;
 using MediatR;
 using TicketSalesPlatform.Events.Domain.ReadModels;
 
@@ -19,23 +19,12 @@ namespace TicketSalesPlatform.Events.Application.GetTicketTypeById
             CancellationToken token
         )
         {
-            var view = await _session
-                .Query<EventDetailView>()
-                .Where(v => v.IsPublished && v.TicketTypes.Any(t => t.Id == request.TicketTypeId))
-                .FirstOrDefaultAsync(token);
+            var view = await _session.LoadAsync<TicketTypeView>(request.TicketTypeId, token);
 
-            if (view is null)
+            if (view is null || !view.IsPublished)
                 return null;
 
-            return view
-                .TicketTypes.Select(x => new TicketTypeDto(
-                    x.Id,
-                    x.EventId,
-                    x.Name,
-                    x.Price,
-                    x.Quantity
-                ))
-                .FirstOrDefault(t => t.Id == request.TicketTypeId);
+            return new TicketTypeDto(view.Id, view.EventId, view.Name, view.Price, view.Quantity);
         }
     }
 }

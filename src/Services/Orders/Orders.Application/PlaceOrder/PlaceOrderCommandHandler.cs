@@ -1,10 +1,9 @@
 using MediatR;
 using Microsoft.Extensions.Logging;
+using StackExchange.Redis;
 using TicketSalesPlatform.Orders.Application.Abstractions;
 using TicketSalesPlatform.Orders.Application.Clients;
-using TicketSalesPlatform.Orders.Domain.Aggregates;
 using TicketSalesPlatform.Orders.Domain.ValueObjects;
-using StackExchange.Redis;
 using Order = TicketSalesPlatform.Orders.Domain.Aggregates.Order;
 
 namespace TicketSalesPlatform.Orders.Application.PlaceOrder
@@ -40,42 +39,36 @@ namespace TicketSalesPlatform.Orders.Application.PlaceOrder
             CancellationToken cancellationToken
         )
         {
-            var validationTasks = request.Items.Select(async itemDto =>
-            {
-                var ticketInfo = await _eventsClient.GetTicketTypeAsync(
-                    itemDto.TicketTypeId,
-                    cancellationToken
-                );
+            var ticketTypeIds = request.Items.Select(x => x.TicketTypeId).Distinct().ToList();
+            var ticketTypes = await _eventsClient.GetTicketTypesBulkAsync(
+                ticketTypeIds,
+                cancellationToken
+            );
+            var ticketTypeDict = ticketTypes.ToDictionary(t => t.Id);
 
-                if (ticketInfo is null)
+            var orderItemsEntity = request
+                .Items.Select(itemDto =>
                 {
-                    throw new InvalidOperationException(
-                        $"TicketType {itemDto.TicketTypeId} does not exist or is invalid."
+                    if (!ticketTypeDict.TryGetValue(itemDto.TicketTypeId, out var ticketInfo))
+                    {
+                        throw new InvalidOperationException(
+                            $"TicketType {itemDto.TicketTypeId} does not exist or is invalid."
+                        );
+                    }
+                    return new InitialOrderItem(
+                        ticketInfo.Id,
+                        ticketInfo.Name,
+                        ticketInfo.Price,
+                        itemDto.Quantity
                     );
-                }
+                })
+                .ToList();
 
-                return new InitialOrderItem(
-                    ticketInfo.Id,
-                    ticketInfo.Name,
-                    ticketInfo.Price,
-                    itemDto.Quantity
-                );
-            });
-
-            var orderItemsArray = await Task.WhenAll(validationTasks);
-            var orderItemsEntity = orderItemsArray.ToList();
-
-            // Perform synchronous Redis stock check & atomic decrement
             var redisDb = _redis.GetDatabase();
-            var decrementedItems = new List<(Guid TicketTypeId, int Quantity)>();
-            bool outOfStock = false;
-            string failedTicketTypeId = "";
 
             foreach (var item in request.Items)
             {
                 var redisKey = $"inventory:tickettype:{item.TicketTypeId}:available";
-
-                // Cache-aside fallback: if key is not in Redis, check and seed via Inventory API
                 var keyExists = await redisDb.KeyExistsAsync(redisKey);
                 if (!keyExists)
                 {
@@ -87,32 +80,39 @@ namespace TicketSalesPlatform.Orders.Application.PlaceOrder
 
                     if (!hasStock)
                     {
-                        outOfStock = true;
-                        failedTicketTypeId = item.TicketTypeId.ToString();
-                        break;
+                        throw new InvalidOperationException(
+                            $"Out of stock for TicketType {item.TicketTypeId}"
+                        );
                     }
                 }
-
-                var remaining = await redisDb.StringDecrementAsync(redisKey, item.Quantity);
-                if (remaining < 0)
-                {
-                    // Revert decrement
-                    await redisDb.StringIncrementAsync(redisKey, item.Quantity);
-                    outOfStock = true;
-                    failedTicketTypeId = item.TicketTypeId.ToString();
-                    break;
-                }
-                decrementedItems.Add((item.TicketTypeId, item.Quantity));
             }
 
-            if (outOfStock)
+            var script =
+                @"
+                for i, key in ipairs(KEYS) do
+                    local qty = tonumber(ARGV[i])
+                    local current = tonumber(redis.call('GET', key) or '0')
+                    if current < qty then
+                        return key
+                    end
+                end
+
+                for i, key in ipairs(KEYS) do
+                    local qty = tonumber(ARGV[i])
+                    redis.call('DECRBY', key, qty)
+                end
+
+                return 'OK'
+                ";
+            var keys = request
+                .Items.Select(i => (RedisKey)$"inventory:tickettype:{i.TicketTypeId}:available")
+                .ToArray();
+            var args = request.Items.Select(i => (RedisValue)i.Quantity.ToString()).ToArray();
+
+            var result = (string?)await redisDb.ScriptEvaluateAsync(script, keys, args);
+            if (result != "OK")
             {
-                // Rollback other decrements
-                foreach (var dec in decrementedItems)
-                {
-                    await redisDb.StringIncrementAsync($"inventory:tickettype:{dec.TicketTypeId}:available", dec.Quantity);
-                }
-                throw new InvalidOperationException($"Out of stock for TicketType {failedTicketTypeId}");
+                throw new InvalidOperationException($"Out of stock for {result}");
             }
 
             var order = Order.Initialize(request.CustomerId, orderItemsEntity);
