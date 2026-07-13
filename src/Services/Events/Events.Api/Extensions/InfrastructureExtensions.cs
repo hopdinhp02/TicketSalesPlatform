@@ -1,4 +1,4 @@
-﻿using JasperFx.Events.Projections;
+using JasperFx.Events.Projections;
 using Marten;
 using MassTransit;
 using TicketSalesPlatform.Events.Application.Abstractions;
@@ -22,6 +22,7 @@ namespace TicketSalesPlatform.Events.Api.Extensions
 
                     options.Projections.Add<EventSummaryProjection>(ProjectionLifecycle.Async);
                     options.Projections.Add<EventDetailProjection>(ProjectionLifecycle.Async);
+                    options.Projections.Add(new TicketTypeProjection(), ProjectionLifecycle.Async);
                 })
                 .UseLightweightSessions()
                 .AddAsyncDaemon(JasperFx.Events.Daemon.DaemonMode.Solo);
