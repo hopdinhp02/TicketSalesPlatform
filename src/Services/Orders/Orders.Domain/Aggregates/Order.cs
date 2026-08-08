@@ -1,4 +1,4 @@
-﻿using SharedKernel;
+using SharedKernel;
 using TicketSalesPlatform.Orders.Domain.DomainEvents;
 using TicketSalesPlatform.Orders.Domain.Enums;
 using TicketSalesPlatform.Orders.Domain.ValueObjects;
@@ -74,10 +74,10 @@ namespace TicketSalesPlatform.Orders.Domain.Aggregates
             if (Status == OrderStatus.Refunded)
                 return;
 
-            if (Status != OrderStatus.Paid)
+            if (Status != OrderStatus.Paid && Status != OrderStatus.Placed)
             {
                 throw new InvalidOperationException(
-                    $"Cannot refund Order {Id} because status is {Status}. Only Paid orders can be refunded."
+                    $"Cannot refund Order {Id} because status is {Status}."
                 );
             }
 

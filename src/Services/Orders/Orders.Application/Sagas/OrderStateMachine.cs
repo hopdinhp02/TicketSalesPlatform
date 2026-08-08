@@ -87,6 +87,12 @@ namespace TicketSalesPlatform.Orders.Application.Sagas
                         context.Saga.ErrorReason = context.Message.Reason;
                         context.Saga.UpdatedAt = DateTime.UtcNow;
                     })
+                    .Publish(context => new OrderFailedIntegrationEvent(
+                        context.Saga.OrderId,
+                        context.Saga.CustomerId,
+                        context.Saga.ErrorReason,
+                        DateTime.UtcNow
+                    ))
                     .TransitionTo(Failed)
             );
 
@@ -107,12 +113,24 @@ namespace TicketSalesPlatform.Orders.Application.Sagas
                         context.Saga.UpdatedAt = DateTime.UtcNow;
                     })
                     .Send(context => new ReleaseStockCommand(context.Saga.OrderId))
+                    .Publish(context => new OrderFailedIntegrationEvent(
+                        context.Saga.OrderId,
+                        context.Saga.CustomerId,
+                        context.Saga.ErrorReason,
+                        DateTime.UtcNow
+                    ))
                     .TransitionTo(Failed),
                 When(ReservationExpiredEvent)
                     .Then(context => context.Saga.UpdatedAt = DateTime.UtcNow)
                     .Send(context => new CancelPaymentCommand(
                         context.Saga.OrderId,
                         "Reservation Expired"
+                    ))
+                    .Publish(context => new OrderFailedIntegrationEvent(
+                        context.Saga.OrderId,
+                        context.Saga.CustomerId,
+                        "Reservation Expired",
+                        DateTime.UtcNow
                     ))
                     .TransitionTo(Failed)
             );
@@ -121,6 +139,12 @@ namespace TicketSalesPlatform.Orders.Application.Sagas
                 Paid,
                 When(StockConfirmedEvent)
                     .Then(context => context.Saga.UpdatedAt = DateTime.UtcNow)
+                    .Publish(context => new OrderCompletedIntegrationEvent(
+                        context.Saga.OrderId,
+                        context.Saga.CustomerId,
+                        context.Saga.TotalPrice,
+                        DateTime.UtcNow
+                    ))
                     .TransitionTo(Completed),
                 When(RefundRequiredEvent)
                     .Then(context =>
@@ -139,6 +163,13 @@ namespace TicketSalesPlatform.Orders.Application.Sagas
                 RefundPending,
                 When(PaymentRefundedEvent)
                     .Then(context => context.Saga.UpdatedAt = DateTime.UtcNow)
+                    .Send(context => new ReleaseStockCommand(context.Saga.OrderId))
+                    .Publish(context => new OrderFailedIntegrationEvent(
+                        context.Saga.OrderId,
+                        context.Saga.CustomerId,
+                        context.Saga.ErrorReason ?? "Order Refunded",
+                        DateTime.UtcNow
+                    ))
                     .TransitionTo(Refunded)
             );
 

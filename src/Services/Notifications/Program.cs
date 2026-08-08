@@ -8,8 +8,9 @@ var builder = WebApplication.CreateBuilder(args);
 // --- START: MASSTRANSIT CONFIGURATION ---
 builder.Services.AddMassTransit(busConfigurator =>
 {
-    // Register our consumer class.
     busConfigurator.AddConsumer<OrderPlacedConsumer>();
+    busConfigurator.AddConsumer<OrderCompletedConsumer>();
+    busConfigurator.AddConsumer<OrderFailedConsumer>();
 
     busConfigurator.UsingRabbitMq(
         (context, cfg) =>
@@ -29,11 +30,26 @@ builder.Services.AddMassTransit(busConfigurator =>
                 "order-placed-notifications",
                 e =>
                 {
-                    // If the consumer throws an exception, retry 3 times with a 5-second delay between retries.
-                    // After 3 failures, the message will be moved to an automatically created _error queue.
                     e.UseMessageRetry(r => r.Interval(3, TimeSpan.FromSeconds(5)));
-
                     e.ConfigureConsumer<OrderPlacedConsumer>(context);
+                }
+            );
+
+            cfg.ReceiveEndpoint(
+                "order-completed-notifications",
+                e =>
+                {
+                    e.UseMessageRetry(r => r.Interval(3, TimeSpan.FromSeconds(5)));
+                    e.ConfigureConsumer<OrderCompletedConsumer>(context);
+                }
+            );
+
+            cfg.ReceiveEndpoint(
+                "order-failed-notifications",
+                e =>
+                {
+                    e.UseMessageRetry(r => r.Interval(3, TimeSpan.FromSeconds(5)));
+                    e.ConfigureConsumer<OrderFailedConsumer>(context);
                 }
             );
         }
